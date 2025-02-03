@@ -1,4 +1,4 @@
-// Liam Wynn, 2/2/2025: 2D Physics Engine
+// Liam Wynn, 2/2/2025, 2D Physics Engine
 
 /*
   Here I define basic 2D and 3D vectors. For now, there isn't much to say -
