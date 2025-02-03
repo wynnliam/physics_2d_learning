@@ -5,10 +5,10 @@
 
 using namespace std;
 
-void print_vect2d(const vect2d& v) {
+void print_vec2def(const vec2def& v) {
   cout << "Vector: [" << v.x << ", " << v.y << "]" << endl;
 }
 
-void print_vect3d(const vect3d& v) {
+void print_vec3def(const vec3def& v) {
   cout << "Vector: [" << v.x << ", " << v.y << ", " << v.z << "]" << endl;
 }

@@ -10,7 +10,7 @@
 
 #include "./vectdef.h"
 
-void print_vect2d(const vect2d& v);
-void print_vect3d(const vect3d& v);
+void print_vec2def(const vec2def& v);
+void print_vec3def(const vec3def& v);
 
 #endif

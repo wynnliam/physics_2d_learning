@@ -12,23 +12,40 @@
 #ifndef VECTDEF
 #define VECTDEF
 
-struct vect2d {
+//
+// VEC2DEF
+//
+
+struct vec2def {
   float x;
   float y;
 
-  vect2d(const float x, const float y) : x(x), y(y) { }
+  vec2def(const float x, const float y) : x(x), y(y) { }
 
-  ~vect2d() = default;
+  ~vec2def() = default;
 };
 
-struct vect3d {
+//
+// Calculates the magnitude of v. Uses the Pythagorean formula to solve
+// mag = sqrt(x^2 + y^2).
+//
+
+float vec2_magnitude(const vec2def& v);
+
+//
+// VEC3DEF
+//
+
+// TODO: Not sure if we will do 3D implementations of operations. For now,
+// we will have this definition, but I may just leave it as is.
+struct vec3def {
   float x;
   float y;
   float z;
 
-  vect3d(const float x, const float y, const float z) : x(x), y(y), z(z) { }
+  vec3def(const float x, const float y, const float z) : x(x), y(y), z(z) { }
 
-  ~vect3d() = default;
+  ~vec3def() = default;
 };
 
 #endif

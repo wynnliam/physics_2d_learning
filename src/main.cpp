@@ -10,16 +10,21 @@
 */
 
 
+#include <iostream>
 #include "./vectdef.h"
 #include "./util.h"
 
+using namespace std;
 
 int main() {
-  vect2d v(1.0f, 2.0f);
-  vect3d m(0.67f, 10.54f, 3.72f);
+  vec2def v(1.0f, 2.0f);
+  float v_mag;
 
-  print_vect2d(v);
-  print_vect3d(m);
+  v_mag = vec2_magnitude(v);
+
+  cout << "v: ";
+  print_vec2def(v);
+  cout << "mag(v) = " << v_mag << endl;
 
   return 0;
 }
