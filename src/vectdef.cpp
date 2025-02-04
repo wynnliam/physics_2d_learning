@@ -16,3 +16,14 @@ float vec2_magnitude(const vec2def& v) {
   return magnitude;
 }
 
+vec2def vec2_add(const vec2def& a, const vec2def& b) {
+  vec2def c(a.x + b.x, a.y + b.y);
+
+  return c;
+}
+
+vec2def vec2_sub(const vec2def& a, const vec2def& b) {
+  vec2def c(a.x - b.x, a.y - b.y);
+
+  return c;
+}

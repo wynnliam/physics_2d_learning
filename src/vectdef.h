@@ -33,6 +33,18 @@ struct vec2def {
 float vec2_magnitude(const vec2def& v);
 
 //
+// Calculates a new vec2 c = a + b.
+//
+
+vec2def vec2_add(const vec2def& a, const vec2def& b);
+
+//
+// Calculates a new vec2 c = a - b.
+//
+
+vec2def vec2_sub(const vec2def& a, const vec2def& b);
+
+//
 // VEC3DEF
 //
 
