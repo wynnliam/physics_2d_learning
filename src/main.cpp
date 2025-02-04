@@ -38,5 +38,14 @@ int main() {
   cout << "v - m: ";
   print_vec2def(s);
 
+  cout << "v == v: ";
+  cout << vec2_eq(v, v) << endl;
+
+  cout << "m == m: ";
+  cout << vec2_eq(m, m) << endl;
+
+  cout << "v == m: ";
+  cout << vec2_eq(v, m) << endl;
+
   return 0;
 }

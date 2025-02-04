@@ -26,6 +26,12 @@ struct vec2def {
 };
 
 //
+// Returns true if a.x == b.x and a.y == b.y
+//
+
+bool vec2_eq(const vec2def& a, const vec2def& b);
+
+//
 // Calculates the magnitude of v. Uses the Pythagorean formula to solve
 // mag = sqrt(x^2 + y^2).
 //

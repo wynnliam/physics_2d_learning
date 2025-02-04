@@ -3,6 +3,10 @@
 #include "vectdef.h"
 #include <cmath>
 
+bool vec2_eq(const vec2def& a, const vec2def& b) {
+  return a.x == b.x && a.y == b.y;
+}
+
 float vec2_magnitude(const vec2def& v) {
   double x_sqrd;
   double y_sqrd;
