@@ -51,6 +51,12 @@ vec2def vec2_add(const vec2def& a, const vec2def& b);
 vec2def vec2_sub(const vec2def& a, const vec2def& b);
 
 //
+// Scales each component of v by multiplying with scalar.
+//
+
+vec2def vec2_scale(const vec2def& v, const float scalar);
+
+//
 // VEC3DEF
 //
 

@@ -17,35 +17,15 @@
 using namespace std;
 
 int main() {
-  vec2def v(1.0f, 2.0f);
-  vec2def m(3.0f, 4.0f);
-  vec2def r = vec2_add(v, m);
-  vec2def s = vec2_sub(v, m);
-  float v_mag;
-
-  v_mag = vec2_magnitude(v);
+  vec2def v(10.0f, 40.0f);
+  float scalar = 4.25f;
+  vec2def s = vec2_scale(v, scalar);
 
   cout << "v: ";
   print_vec2def(v);
-  cout << "mag(v) = " << v_mag << endl;
 
-  cout << "m: ";
-  print_vec2def(m);
-
-  cout << "v + m: ";
-  print_vec2def(r);
-
-  cout << "v - m: ";
+  cout << "4.25 * v = ";
   print_vec2def(s);
-
-  cout << "v == v: ";
-  cout << vec2_eq(v, v) << endl;
-
-  cout << "m == m: ";
-  cout << vec2_eq(m, m) << endl;
-
-  cout << "v == m: ";
-  cout << vec2_eq(v, m) << endl;
 
   return 0;
 }

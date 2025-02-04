@@ -31,3 +31,9 @@ vec2def vec2_sub(const vec2def& a, const vec2def& b) {
 
   return c;
 }
+
+vec2def vec2_scale(const vec2def& v, const float scalar) {
+  vec2def scaled_v(v.x * scalar, v.y * scalar);
+
+  return scaled_v;
+}
