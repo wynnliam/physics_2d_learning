@@ -39,6 +39,12 @@ bool vec2_eq(const vec2def& a, const vec2def& b);
 float vec2_magnitude(const vec2def& v);
 
 //
+// Calculates the dot product of a and b (also known as the scalar product).
+//
+
+float vec2_dot(const vec2def& a, const vec2def& b);
+
+//
 // Calculates a new vec2 c = a + b.
 //
 

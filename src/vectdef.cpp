@@ -20,6 +20,18 @@ float vec2_magnitude(const vec2def& v) {
   return magnitude;
 }
 
+float vec2_dot(const vec2def& a, const vec2def& b) {
+  float x_prod;
+  float y_prod;
+  float dot_prod;
+
+  x_prod = a.x * b.x;
+  y_prod = a.y * b.y;
+  dot_prod = x_prod + y_prod;
+
+  return dot_prod;
+}
+
 vec2def vec2_add(const vec2def& a, const vec2def& b) {
   vec2def c(a.x + b.x, a.y + b.y);
 

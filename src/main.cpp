@@ -17,15 +17,11 @@
 using namespace std;
 
 int main() {
-  vec2def v(10.0f, 40.0f);
-  float scalar = 4.25f;
-  vec2def s = vec2_scale(v, scalar);
+  vec2def a(1.0f, 2.0f);
+  vec2def b(3.0f, 4.0f);
+  float dot_prod = vec2_dot(a, b);
 
-  cout << "v: ";
-  print_vec2def(v);
-
-  cout << "4.25 * v = ";
-  print_vec2def(s);
+  cout << "Dot prod is: " << dot_prod << endl;
 
   return 0;
 }
