@@ -17,11 +17,15 @@
 using namespace std;
 
 int main() {
-  vec2def a(1.0f, 2.0f);
-  vec2def b(3.0f, 4.0f);
-  float dot_prod = vec2_dot(a, b);
+  vec3def a(4.0f, -2.0f, 0.0f);
+  vec3def b(-3.0f, 1.0f, 0.0f);
+  vec3def c1 = vec3_cross_product(a, b);
+  vec3def c2 = vec3_cross_product(b, a);
 
-  cout << "Dot prod is: " << dot_prod << endl;
+  print_vec3def(a);
+  print_vec3def(b);
+  print_vec3def(c1);
+  print_vec3def(c2);
 
   return 0;
 }

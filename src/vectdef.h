@@ -78,4 +78,11 @@ struct vec3def {
   ~vec3def() = default;
 };
 
+//
+// Implements the cross product of a and b. NOTE: This is thus far the only routine
+// that the vec3 has that the vec2 does not.
+//
+
+vec3def vec3_cross_product(const vec3def& a, const vec3def& b);
+
 #endif
