@@ -9,6 +9,24 @@
   in C++, I wanted to follow along as the course teaches.
 */
 
+class vec3def {
+  constructor(x, y, z) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+  
+  cross(v) {
+    let result = new vec3def(0, 0, 0);
+    
+    result.x = this.y * v.z - this.z * v.y;
+    result.y = this.z * v.x - this.x * v.z;
+    result.z = this.x * v.y - this.y * v.x;
+    
+    return result;
+  }
+}
+
 class vec2def {
   constructor(x, y) {
     this.x = x;
