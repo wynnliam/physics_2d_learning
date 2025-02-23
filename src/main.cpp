@@ -17,15 +17,11 @@
 using namespace std;
 
 int main() {
-  vec3def a(4.0f, -2.0f, 0.0f);
-  vec3def b(-3.0f, 1.0f, 0.0f);
-  vec3def c1 = vec3_cross_product(a, b);
-  vec3def c2 = vec3_cross_product(b, a);
+  vec2def v(2, 1);
+  vec2def v1 = vec2_perp(v);
 
-  print_vec3def(a);
-  print_vec3def(b);
-  print_vec3def(c1);
-  print_vec3def(c2);
+  print_vec2def(v);
+  print_vec2def(v1);
 
   return 0;
 }

@@ -82,6 +82,11 @@ class vec2def {
     return x_prod + y_prod;
   }
   
+  perp() {
+    let result = new vec2(this.y, -this.x);
+    return result;
+  }
+  
   magnitude() {
     return Math.sqrt((this.x * this.x) + (this.y * this.y));
   }

@@ -36,6 +36,12 @@ float vec2_dot(const vec2def& a, const vec2def& b) {
   return dot_prod;
 }
 
+vec2def vec2_perp(const vec2def& v) {
+  vec2def result(v.y, -v.x);
+
+  return result;
+}
+
 vec2def vec2_add(const vec2def& a, const vec2def& b) {
   vec2def c(a.x + b.x, a.y + b.y);
 

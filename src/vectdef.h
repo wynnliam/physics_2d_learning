@@ -45,6 +45,17 @@ float vec2_magnitude(const vec2def& v);
 float vec2_dot(const vec2def& a, const vec2def& b);
 
 //
+// Defines the clockwise perpendicular product of a given vector v.
+// That is, it returns the vector v1 that is v rotated 90 degrees
+// clockwise. (The above statement assumes the y-axis grows upwards.
+// In some contexts, the screen renders downwards. Keep that in mind
+// when you look at this function. This is about the closest we can
+// get to a "cross" product of a 2D vector.
+//
+
+vec2def vec2_perp(const vec2def& v);
+
+//
 // Calculates a new vec2 c = a + b.
 //
 
