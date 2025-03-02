@@ -1,11 +1,7 @@
 // Liam Wynn, 2/2/2025, 2D Physics Engine
 
-#include "vecdef.h"
+#include "vec2def.h"
 #include <cmath>
-
-//
-// VEC2 IMPL
-//
 
 bool vec2_eq(const vec2def& a, const vec2def& b) {
   return a.x == b.x && a.y == b.y;
@@ -58,18 +54,4 @@ vec2def vec2_scale(const vec2def& v, const float scalar) {
   vec2def scaled_v(v.x * scalar, v.y * scalar);
 
   return scaled_v;
-}
-
-//
-// VEC3 IMPL
-//
-
-vec3def vec3_cross_product(const vec3def& a, const vec3def& b) {
-  vec3def result(0.0f, 0.0f, 0.0f);
-
-  result.x = a.y * b.z - a.z * b.y;
-  result.y = a.z * b.x - a.x * b.z;
-  result.z = a.x * b.y - a.y * b.x;
-
-  return result;
 }
