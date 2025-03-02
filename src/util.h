@@ -8,7 +8,7 @@
 #ifndef UTIL
 #define UTIL
 
-#include "./vectdef.h"
+#include "./vecdef.h"
 
 void print_vec2def(const vec2def& v);
 void print_vec3def(const vec3def& v);

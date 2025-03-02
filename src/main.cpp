@@ -11,7 +11,7 @@
 
 
 #include <iostream>
-#include "./vectdef.h"
+#include "./vecdef.h"
 #include "./util.h"
 
 using namespace std;

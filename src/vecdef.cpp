@@ -1,6 +1,6 @@
 // Liam Wynn, 2/2/2025, 2D Physics Engine
 
-#include "vectdef.h"
+#include "vecdef.h"
 #include <cmath>
 
 //
