@@ -24,6 +24,21 @@ float vec3_magnitude(const vec3def& v) {
   return magnitude;
 }
 
+vec3def vec3_norm(const vec3def& v) {
+  vec3def result(0.0f, 0.0f, 0.0f);
+  float v_mag;
+
+  v_mag = vec3_magnitude(v);
+
+  if (v_mag > 0.0f) {
+    result.x = v.x / v_mag;
+    result.y = v.y / v_mag;
+    result.z = v.z / v_mag;
+  }
+
+  return result;
+}
+
 float vec3_dot(const vec3def& a, const vec3def& b) {
   float x_prod;
   float y_prod;

@@ -17,11 +17,14 @@
 using namespace std;
 
 int main() {
-  vec3def a(2, 1, 3);
-  vec3def b = vec3_scale(a, 2);
+  vec3def a(0.0f, 0.0f, 0.0f);
+  vec3def b(2, 1, 3);
+  vec3def c = vec3_norm(b);
 
-  print_vec3def(a);
-  print_vec3def(b);
+  print_vec3def(vec3_norm(a));
+  print_vec3def(c);
+
+  cout << vec3_magnitude(c) << endl;
 
   return 0;
 }

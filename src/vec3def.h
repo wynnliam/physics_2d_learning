@@ -39,6 +39,13 @@ bool vec3_eq(const vec3def& a, const vec3def& b);
 float vec3_magnitude(const vec3def& v);
 
 //
+// Computes a noramlized version of v called v1. The magnitude of v1 is
+// 1. Note if the magnitude of v is 0, then we return a zero vector.
+//
+
+vec3def vec3_norm(const vec3def& v);
+
+//
 // Calculates the dot product of a and b (also known as the scalar product).
 //
 

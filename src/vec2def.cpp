@@ -20,6 +20,20 @@ float vec2_magnitude(const vec2def& v) {
   return magnitude;
 }
 
+vec2def vec2_norm(const vec2def& v) {
+  vec2def result(0.0f, 0.0f);
+  float v_mag;
+
+  v_mag = vec2_magnitude(v);
+
+  if (v_mag > 0.0f) {
+    result.x = v.x / v_mag;
+    result.y = v.y / v_mag;
+  }
+
+  return result;
+}
+
 float vec2_dot(const vec2def& a, const vec2def& b) {
   float x_prod;
   float y_prod;
