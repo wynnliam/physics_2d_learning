@@ -15,8 +15,6 @@
 // VEC3DEF
 //
 
-// TODO: Not sure if we will do 3D implementations of operations. For now,
-// we will have this definition, but I may just leave it as is.
 struct vec3def {
   float x;
   float y;
@@ -26,6 +24,43 @@ struct vec3def {
 
   ~vec3def() = default;
 };
+
+//
+// Returns true if the components of a == components of b.
+//
+
+bool vec3_eq(const vec3def& a, const vec3def& b);
+
+//
+// Calculates the magnitude of v. Uses the Pythagorean formula to solve
+// for the magnitude.
+//
+
+float vec3_magnitude(const vec3def& v);
+
+//
+// Calculates the dot product of a and b (also known as the scalar product).
+//
+
+float vec3_dot(const vec3def& a, const vec3def& b);
+
+//
+// Calculates a new vec3 c = a + b.
+//
+
+vec3def vec3_add(const vec3def& a, const vec3def& b);
+
+//
+// Calculates a new vec3 c = a - b.
+//
+
+vec3def vec3_sub(const vec3def& a, const vec3def& b);
+
+//
+// Scales each component of v by multiplying with scalar.
+//
+
+vec3def vec3_scale(const vec3def& v, const float scalar);
 
 //
 // Implements the cross product of a and b. NOTE: This is thus far the only routine

@@ -17,11 +17,11 @@
 using namespace std;
 
 int main() {
-  vec2def v(2, 1);
-  vec2def v1 = vec2_perp(v);
+  vec3def a(2, 1, 3);
+  vec3def b = vec3_scale(a, 2);
 
-  print_vec2def(v);
-  print_vec2def(v1);
+  print_vec3def(a);
+  print_vec3def(b);
 
   return 0;
 }
