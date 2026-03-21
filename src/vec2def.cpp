@@ -69,3 +69,17 @@ vec2def vec2_scale(const vec2def& v, const float scalar) {
 
   return scaled_v;
 }
+
+vec2def vec2_rotate(const vec2def& v, const float beta) {
+  float beta_cos;
+  float beta_sin;
+  vec2def result(0, 0);
+
+  beta_cos = cos(beta);
+  beta_sin = sin(beta);
+
+  result.x = (v.x * beta_cos) - (v.y * beta_sin);
+  result.y = (v.x * beta_sin) + (v.y * beta_cos);
+
+  return result;
+}

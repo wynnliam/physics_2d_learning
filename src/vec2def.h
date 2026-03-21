@@ -79,4 +79,10 @@ vec2def vec2_sub(const vec2def& a, const vec2def& b);
 
 vec2def vec2_scale(const vec2def& v, const float scalar);
 
+//
+// Rotates a vector about (0, 0) by beta radians.
+//
+
+vec2def vec2_rotate(const vec2def& v, const float beta);
+
 #endif
