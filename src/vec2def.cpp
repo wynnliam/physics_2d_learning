@@ -83,3 +83,11 @@ vec2def vec2_rotate(const vec2def& v, const float beta) {
 
   return result;
 }
+
+float vec2_cross(const vec2def& a, const vec2def& b) {
+  float result;
+
+  result = (a.x * b.y) - (a.y * b.x);
+
+  return result;
+}

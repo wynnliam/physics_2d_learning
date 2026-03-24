@@ -85,4 +85,11 @@ vec2def vec2_scale(const vec2def& v, const float scalar);
 
 vec2def vec2_rotate(const vec2def& v, const float beta);
 
+//
+// Returns the magnitude of the imaginary z line that is perpendicular to the
+// plane formed by a and b.
+//
+
+float vec2_cross(const vec2def& a, const vec2def& b);
+
 #endif
