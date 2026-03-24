@@ -1,28 +1,22 @@
 // Liam Wynn, 2/2/2025, 2D Physics Engine
 
-/*
-  TODO: Add nicer build system. For now:
-  g++ -g *.cpp
-
-  To run:
-
-  ./a.out
-*/
-
-
 #include <iostream>
-#include "./vecdef.h"
-#include "./util.h"
+#include "./application.h"
 
 using namespace std;
 
 int main() {
-  vec2def a = { 1, 2 };
-  float beta = 0.785398f;
-  vec2def c = vec2_rotate(a, beta);
+  application app;
 
-  print_vec2def(a);
-  print_vec2def(c);
+  app_setup(app);
+
+  while (app_is_running(app)) {
+    app_input(app);
+    app_update(app);
+    app_draw(app);
+  }
+
+  app_destroy(app);
 
   return 0;
 }
