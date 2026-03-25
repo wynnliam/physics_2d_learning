@@ -19,6 +19,7 @@ struct vec2def {
   float x;
   float y;
 
+  vec2def() { x = 0; y = 0; }
   vec2def(const float x, const float y) : x(x), y(y) { }
 
   ~vec2def() = default;

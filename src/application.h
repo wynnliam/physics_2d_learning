@@ -8,10 +8,13 @@
 #define APPLICATION
 
 #include "./graphics.h"
+#include "./physics/particle.h"
 
 struct application {
   graphics gr;
   bool running;
+  int time_prev_frame;
+  particle* p;
 };
 
 void app_setup(application& app);
