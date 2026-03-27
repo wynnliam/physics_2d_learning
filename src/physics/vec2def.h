@@ -39,6 +39,12 @@ bool vec2_eq(const vec2def& a, const vec2def& b);
 float vec2_magnitude(const vec2def& v);
 
 //
+// Calculates the squared magnitude.
+//
+
+float vec2_mag_squared(const vec2def& v);
+
+//
 // Computes a noramlized version of v called v1. The magnitude of v1 is
 // 1. Note if the magnitude of v is 0, then we return a zero vector.
 //

@@ -9,12 +9,16 @@
 
 #include "./graphics.h"
 #include "./physics/particle.h"
+#include <vector>
 
 struct application {
   graphics gr;
   bool running;
   int time_prev_frame;
-  particle* p;
+
+  std::vector<particle*> particles;
+  vec2def push_force;
+  SDL_Rect fluid;
 };
 
 void app_setup(application& app);

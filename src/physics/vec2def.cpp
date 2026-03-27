@@ -20,6 +20,16 @@ float vec2_magnitude(const vec2def& v) {
   return magnitude;
 }
 
+float vec2_mag_squared(const vec2def& v) {
+  double x_sqrd;
+  double y_sqrd;
+
+  x_sqrd = v.x * v.x;
+  y_sqrd = v.y * v.y;
+
+  return x_sqrd + y_sqrd;
+}
+
 vec2def vec2_norm(const vec2def& v) {
   vec2def result(0.0f, 0.0f);
   float v_mag;

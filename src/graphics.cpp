@@ -62,6 +62,24 @@ void graphics_draw_fill_circle(
   filledCircleColor(g.renderer, x, y, radius, color);
 }
 
+void graphics_draw_fill_rect(
+  graphics& g,
+  const int x,
+  const int y,
+  const int w,
+  const int h,
+  const uint32_t color
+) {
+  boxColor(
+    g.renderer,
+    x - w / 2.0,
+    y - h / 2.0,
+    x + w / 2.0,
+    y + h / 2.0,
+    color
+  );
+}
+
 void graphics_draw_frame(graphics& g) {
   SDL_RenderPresent(g.renderer);
 }

@@ -26,6 +26,15 @@ void graphics_draw_fill_circle(
   const uint32_t color
 );
 
+void graphics_draw_fill_rect(
+  graphics& g,
+  const int x,
+  const int y,
+  const int w,
+  const int h,
+  const uint32_t color
+);
+
 void graphics_draw_frame(graphics& g);
 
 void graphics_close_window(graphics& g);
