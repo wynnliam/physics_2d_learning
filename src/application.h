@@ -11,14 +11,29 @@
 #include "./physics/particle.h"
 #include <vector>
 
+struct chain_link {
+  std::vector<size_t> links;
+};
+
 struct application {
   graphics gr;
   bool running;
   int time_prev_frame;
 
+  vec2def mouse_cursor;
+  bool left_mouse_button_down;
+
   std::vector<particle*> particles;
+
   vec2def push_force;
+
   SDL_Rect fluid;
+
+  // chain.size() == particles.size().
+  std::vector<chain_link> chain;
+
+  float spring_k;
+  float spring_rest_length;
 };
 
 void app_setup(application& app);

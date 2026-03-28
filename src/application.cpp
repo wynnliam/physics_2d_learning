@@ -3,10 +3,70 @@
 #include "./application.h"
 #include "./physics/constants.h"
 #include "./physics/force.h"
+#include <algorithm>
+
+using namespace std;
+
+static void insert_chain_link(
+  vector<size_t>& chain,
+  const size_t to
+);
 
 void app_setup(application& app) {
+  size_t i;
+
   app.running = graphics_open_window(app.gr);
   app.time_prev_frame = SDL_GetTicks();
+
+  app.chain.resize(4);
+  app.spring_k = 10.0f;
+  app.spring_rest_length = 40;
+
+  app.particles.resize(app.chain.size());
+
+  app.particles[0] = new particle;
+  particle_init(*(app.particles[0]), 50, 100, 2.0f);
+  app.particles[0]->radius = 4;
+  insert_chain_link(app.chain[0].links, 1);
+  insert_chain_link(app.chain[0].links, 2);
+  insert_chain_link(app.chain[0].links, 3);
+  
+  app.particles[1] = new particle;
+  particle_init(*(app.particles[1]), 100, 100, 2.0f);
+  app.particles[1]->radius = 4;
+  insert_chain_link(app.chain[1].links, 0);
+  insert_chain_link(app.chain[1].links, 2);
+  insert_chain_link(app.chain[1].links, 3);
+  
+  app.particles[2] = new particle;
+  particle_init(*(app.particles[2]), 50, 200, 2.0f);
+  app.particles[2]->radius = 4;
+  insert_chain_link(app.chain[2].links, 0);
+  insert_chain_link(app.chain[2].links, 1);
+  insert_chain_link(app.chain[2].links, 3);
+  
+  app.particles[3] = new particle;
+  particle_init(*(app.particles[3]), 100, 200, 2.0f);
+  app.particles[3]->radius = 4;
+  insert_chain_link(app.chain[3].links, 0);
+  insert_chain_link(app.chain[3].links, 1);
+  insert_chain_link(app.chain[3].links, 2);
+  
+  //for (i = 0; i < app.particles.size(); i++) {
+  //  app.particles[i] = new particle;
+  //  particle_init(
+  //    *(app.particles[i]),
+  //    app.gr.window_w / 2,
+  //    i * app.spring_rest_length + 50,
+  //    2.0f
+  //  );
+  //  app.particles[i]->radius = 4;
+
+  //  if (i > 0) {
+  //    insert_chain_link(app.chain[i].links, i - 1);
+  //    insert_chain_link(app.chain[i - 1].links, i);
+  //  }
+  //}
 
   app.push_force = vec2def(0.0f, 0.0f);
 
@@ -14,6 +74,8 @@ void app_setup(application& app) {
   app.fluid.y = app.gr.window_h / 2;
   app.fluid.w = app.gr.window_w;
   app.fluid.h = app.gr.window_h / 2;
+
+  app.left_mouse_button_down = false;
 }
 
 bool app_is_running(application& app) {
@@ -22,7 +84,9 @@ bool app_is_running(application& app) {
 
 void app_input(application& app) {
   SDL_Event event;
-  particle* p;
+  vec2def impulse_dir;
+  float impulse_mag;
+  vec2def mouse_to_p0;
   int x;
   int y;
 
@@ -77,34 +141,62 @@ void app_input(application& app) {
         break;
       }
 
+      case SDL_MOUSEMOTION: {
+        app.mouse_cursor.x = event.motion.x;
+        app.mouse_cursor.y = event.motion.y;
+
+        break;
+      }
+
       case SDL_MOUSEBUTTONDOWN: {
         if (event.button.button == SDL_BUTTON_LEFT) {
+          app.left_mouse_button_down = true;
           SDL_GetMouseState(&x, &y);
-
-          p = new particle;
-          particle_init(*p, x, y, 1.0f);
-          p->radius = 5;
-          app.particles.push_back(p);
-
-          break;
+          app.mouse_cursor.x = x;
+          app.mouse_cursor.y = y;
         }
+
+        break;
+      }
+
+      case SDL_MOUSEBUTTONUP: {
+        if (app.left_mouse_button_down) {
+          if (event.button.button == SDL_BUTTON_LEFT) {
+            app.left_mouse_button_down = false;
+
+            mouse_to_p0 = vec2_sub(
+              app.particles[0]->position,
+              app.mouse_cursor
+            );
+            impulse_dir = vec2_norm(mouse_to_p0);
+            impulse_mag = vec2_magnitude(mouse_to_p0) * 5.0f;
+
+            app.particles[0]->velocity = vec2_scale(impulse_dir, impulse_mag);
+          }
+        }
+
+        break;
       }
     }
   }
 }
 
 void app_update(application& app) {
+  vec2def attraction;
   float bottom;
   float bound;
   float delta_time;
-  vec2def drag;
-  vec2def force_wind;
+  vec2def force_drag;
+  vec2def force_spring;
   vec2def force_weight;
-  vec2def friction;
+  vec2def force_friction;
   vec2def gravity;
   int frame_delta;
   size_t i;
+  size_t j;
+  size_t l;
   float next_radius;
+  size_t num_links;
   size_t num_particles;
   int time_to_wait;
 
@@ -135,7 +227,6 @@ void app_update(application& app) {
   app.time_prev_frame = SDL_GetTicks();
   num_particles = app.particles.size();
 
-  force_wind = vec2def(2.73 * PIXELS_PER_METERS, 0.0f);
   gravity = vec2def(0.0f, 9.81 * PIXELS_PER_METERS);
 
   //
@@ -143,12 +234,6 @@ void app_update(application& app) {
   //
 
   for (i = 0; i < num_particles; i++) {
-
-    //
-    // Apply a wind force to each particle.
-    //
-
-    //particle_add_force(*(app.particles[i]), force_wind);
 
     //
     // Apply the push force.
@@ -160,12 +245,26 @@ void app_update(application& app) {
     // Apply friction.
     //
 
-    friction = generate_friction_force(
+    force_friction = generate_friction_force(
       *(app.particles[i]),
-      10.0f * PIXELS_PER_METERS
+      5.0f * PIXELS_PER_METERS
     );
 
-    particle_add_force(*(app.particles[i]), friction);
+    particle_add_force(*(app.particles[i]), force_friction);
+
+    num_links = app.chain[i].links.size();
+    for (j = 0; j < num_links; j++) {
+      l = app.chain[i].links[j];
+
+      force_spring = generate_spring_force(
+        *(app.particles[i]),
+        *(app.particles[l]),
+        app.spring_rest_length,
+        app.spring_k
+      );
+
+      particle_add_force(*(app.particles[i]), force_spring);
+    }
 
     //
     // Apply the weight force to each particle.
@@ -175,13 +274,20 @@ void app_update(application& app) {
     //particle_add_force(*(app.particles[i]), force_weight);
 
     //
+    // Apply a drag force.
+    //
+
+    //force_drag = generate_drag_force(*(app.particles[i]), 0.01f);
+    //particle_add_force(*(app.particles[i]), force_drag);
+
+    //
     // Apply the drag force to each particle if the particle is inside the
     // liquid.
     //
 
     //if (app.particles[i]->position.y >= app.fluid.y) {
-    //  drag = generate_drag_force(*(app.particles[i]), 0.01f);
-    //  particle_add_force(*(app.particles[i]), drag);
+    //  force_drag = generate_drag_force(*(app.particles[i]), 0.01f);
+    //  particle_add_force(*(app.particles[i]), force_drag);
     //}
   }
 
@@ -233,22 +339,55 @@ void app_update(application& app) {
 
 void app_draw(application& app) {
   size_t i;
+  size_t j;
+  size_t l;
   size_t num_particles;
+  size_t num_links;
 
   graphics_clear_screen(app.gr, 0xFF056263);
 
-  graphics_draw_fill_rect(
-    app.gr,
-    app.fluid.x + app.fluid.w / 2,
-    app.fluid.y + app.fluid.h / 2,
-    app.fluid.w,
-    app.fluid.h,
-    0xFF6E3713
-  );
+  if (app.left_mouse_button_down) {
+    graphics_draw_line(
+      app.gr,
+      app.particles[0]->position.x,
+      app.particles[0]->position.y,
+      app.mouse_cursor.x,
+      app.mouse_cursor.y,
+      0xFF0000FF
+    );
+  }
+
+  //graphics_draw_fill_rect(
+  //  app.gr,
+  //  app.fluid.x + app.fluid.w / 2,
+  //  app.fluid.y + app.fluid.h / 2,
+  //  app.fluid.w,
+  //  app.fluid.h,
+  //  0xFF6E3713
+  //);
+
+  //
+  // Draw the spring and anchor.
+  //
 
   num_particles = app.particles.size();
 
   for (i = 0; i < num_particles; i++) {
+    num_links = app.chain[i].links.size();
+
+    for (j = 0; j < num_links; j++) {
+      l = app.chain[i].links[j];
+
+      graphics_draw_line(
+        app.gr,
+        app.particles[i]->position.x,
+        app.particles[i]->position.y,
+        app.particles[l]->position.x,
+        app.particles[l]->position.y,
+        0xFF0000FF
+      );
+    }
+
     graphics_draw_fill_circle(
       app.gr,
       app.particles[i]->position.x,
@@ -271,4 +410,16 @@ void app_destroy(application& app) {
   }
 
   graphics_close_window(app.gr);
+}
+
+/* UTILITY ROUTINES */
+void insert_chain_link(
+  vector<size_t>& chain,
+  const size_t to
+) {
+  auto f = std::find(chain.begin(), chain.end(), to);
+
+  if (f == chain.end()) {
+    chain.push_back(to);
+  }
 }

@@ -13,5 +13,29 @@ vec2def generate_drag_force(const particle& p, const float k);
 
 vec2def generate_friction_force(const particle& p, const float k);
 
+// N.B. generates attractional force FROM a TO b. But this can be negated to get
+// FOMR b to a.
+vec2def generate_gravitational_force(
+  const particle& a,
+  const particle& b,
+  const float G,
+  const float min_dist,
+  const float max_dist
+);
+
+vec2def generate_spring_force(
+  const particle& p,
+  const vec2def anchor,
+  const float rest_length,
+  const float k
+);
+
+vec2def generate_spring_force(
+  const particle& a,
+  const particle& b,
+  const float rest_length,
+  const float k
+);
+
 #endif
 

@@ -35,6 +35,15 @@ void graphics_draw_fill_rect(
   const uint32_t color
 );
 
+void graphics_draw_line(
+  graphics& g,
+  const int x0,
+  const int y0,
+  const int x1,
+  const int y1,
+  const uint32_t color
+);
+
 void graphics_draw_frame(graphics& g);
 
 void graphics_close_window(graphics& g);

@@ -80,6 +80,17 @@ void graphics_draw_fill_rect(
   );
 }
 
+void graphics_draw_line(
+  graphics& g,
+  const int x0,
+  const int y0,
+  const int x1,
+  const int y1,
+  const uint32_t color
+) {
+  lineColor(g.renderer, x0, y0, x1, y1, color);
+}
+
 void graphics_draw_frame(graphics& g) {
   SDL_RenderPresent(g.renderer);
 }
