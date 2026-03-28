@@ -13,14 +13,12 @@ static void insert_chain_link(
 );
 
 void app_setup(application& app) {
-  size_t i;
-
   app.running = graphics_open_window(app.gr);
   app.time_prev_frame = SDL_GetTicks();
 
   app.chain.resize(4);
-  app.spring_k = 10.0f;
-  app.spring_rest_length = 40;
+  app.spring_k = 300.0f;
+  app.spring_rest_length = 80;
 
   app.particles.resize(app.chain.size());
 
@@ -245,12 +243,12 @@ void app_update(application& app) {
     // Apply friction.
     //
 
-    force_friction = generate_friction_force(
-      *(app.particles[i]),
-      5.0f * PIXELS_PER_METERS
-    );
+    //force_friction = generate_friction_force(
+    //  *(app.particles[i]),
+    //  5.0f * PIXELS_PER_METERS
+    //);
 
-    particle_add_force(*(app.particles[i]), force_friction);
+    //particle_add_force(*(app.particles[i]), force_friction);
 
     num_links = app.chain[i].links.size();
     for (j = 0; j < num_links; j++) {
@@ -270,15 +268,15 @@ void app_update(application& app) {
     // Apply the weight force to each particle.
     //
 
-    //force_weight = vec2_scale(gravity, app.particles[i]->mass);
-    //particle_add_force(*(app.particles[i]), force_weight);
+    force_weight = vec2_scale(gravity, app.particles[i]->mass);
+    particle_add_force(*(app.particles[i]), force_weight);
 
     //
     // Apply a drag force.
     //
 
-    //force_drag = generate_drag_force(*(app.particles[i]), 0.01f);
-    //particle_add_force(*(app.particles[i]), force_drag);
+    force_drag = generate_drag_force(*(app.particles[i]), 0.01f);
+    particle_add_force(*(app.particles[i]), force_drag);
 
     //
     // Apply the drag force to each particle if the particle is inside the
