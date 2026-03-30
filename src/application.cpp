@@ -20,45 +20,45 @@ void app_setup(application& app) {
   app.spring_k = 300.0f;
   app.spring_rest_length = 80;
 
-  app.particles.resize(app.chain.size());
+  app.bodys.resize(app.chain.size());
 
-  app.particles[0] = new particle;
-  particle_init(*(app.particles[0]), 50, 100, 2.0f);
-  app.particles[0]->radius = 4;
+  app.bodys[0] = new body;
+  body_init(*(app.bodys[0]), 50, 100, 2.0f);
+  app.bodys[0]->radius = 4;
   insert_chain_link(app.chain[0].links, 1);
   insert_chain_link(app.chain[0].links, 2);
   insert_chain_link(app.chain[0].links, 3);
   
-  app.particles[1] = new particle;
-  particle_init(*(app.particles[1]), 100, 100, 2.0f);
-  app.particles[1]->radius = 4;
+  app.bodys[1] = new body;
+  body_init(*(app.bodys[1]), 100, 100, 2.0f);
+  app.bodys[1]->radius = 4;
   insert_chain_link(app.chain[1].links, 0);
   insert_chain_link(app.chain[1].links, 2);
   insert_chain_link(app.chain[1].links, 3);
   
-  app.particles[2] = new particle;
-  particle_init(*(app.particles[2]), 50, 200, 2.0f);
-  app.particles[2]->radius = 4;
+  app.bodys[2] = new body;
+  body_init(*(app.bodys[2]), 50, 200, 2.0f);
+  app.bodys[2]->radius = 4;
   insert_chain_link(app.chain[2].links, 0);
   insert_chain_link(app.chain[2].links, 1);
   insert_chain_link(app.chain[2].links, 3);
   
-  app.particles[3] = new particle;
-  particle_init(*(app.particles[3]), 100, 200, 2.0f);
-  app.particles[3]->radius = 4;
+  app.bodys[3] = new body;
+  body_init(*(app.bodys[3]), 100, 200, 2.0f);
+  app.bodys[3]->radius = 4;
   insert_chain_link(app.chain[3].links, 0);
   insert_chain_link(app.chain[3].links, 1);
   insert_chain_link(app.chain[3].links, 2);
   
-  //for (i = 0; i < app.particles.size(); i++) {
-  //  app.particles[i] = new particle;
-  //  particle_init(
-  //    *(app.particles[i]),
+  //for (i = 0; i < app.bodys.size(); i++) {
+  //  app.bodys[i] = new body;
+  //  body_init(
+  //    *(app.bodys[i]),
   //    app.gr.window_w / 2,
   //    i * app.spring_rest_length + 50,
   //    2.0f
   //  );
-  //  app.particles[i]->radius = 4;
+  //  app.bodys[i]->radius = 4;
 
   //  if (i > 0) {
   //    insert_chain_link(app.chain[i].links, i - 1);
@@ -163,13 +163,13 @@ void app_input(application& app) {
             app.left_mouse_button_down = false;
 
             mouse_to_p0 = vec2_sub(
-              app.particles[0]->position,
+              app.bodys[0]->position,
               app.mouse_cursor
             );
             impulse_dir = vec2_norm(mouse_to_p0);
             impulse_mag = vec2_magnitude(mouse_to_p0) * 5.0f;
 
-            app.particles[0]->velocity = vec2_scale(impulse_dir, impulse_mag);
+            app.bodys[0]->velocity = vec2_scale(impulse_dir, impulse_mag);
           }
         }
 
@@ -195,7 +195,7 @@ void app_update(application& app) {
   size_t l;
   float next_radius;
   size_t num_links;
-  size_t num_particles;
+  size_t num_bodys;
   int time_to_wait;
 
   //
@@ -223,114 +223,114 @@ void app_update(application& app) {
   }
 
   app.time_prev_frame = SDL_GetTicks();
-  num_particles = app.particles.size();
+  num_bodys = app.bodys.size();
 
   gravity = vec2def(0.0f, 9.81 * PIXELS_PER_METERS);
 
   //
-  // Apply each force to the particles.
+  // Apply each force to the bodys.
   //
 
-  for (i = 0; i < num_particles; i++) {
+  for (i = 0; i < num_bodys; i++) {
 
     //
     // Apply the push force.
     //
 
-    particle_add_force(*(app.particles[i]), app.push_force);
+    body_add_force(*(app.bodys[i]), app.push_force);
 
     //
     // Apply friction.
     //
 
     //force_friction = generate_friction_force(
-    //  *(app.particles[i]),
+    //  *(app.bodys[i]),
     //  5.0f * PIXELS_PER_METERS
     //);
 
-    //particle_add_force(*(app.particles[i]), force_friction);
+    //body_add_force(*(app.bodys[i]), force_friction);
 
     num_links = app.chain[i].links.size();
     for (j = 0; j < num_links; j++) {
       l = app.chain[i].links[j];
 
       force_spring = generate_spring_force(
-        *(app.particles[i]),
-        *(app.particles[l]),
+        *(app.bodys[i]),
+        *(app.bodys[l]),
         app.spring_rest_length,
         app.spring_k
       );
 
-      particle_add_force(*(app.particles[i]), force_spring);
+      body_add_force(*(app.bodys[i]), force_spring);
     }
 
     //
-    // Apply the weight force to each particle.
+    // Apply the weight force to each body.
     //
 
-    force_weight = vec2_scale(gravity, app.particles[i]->mass);
-    particle_add_force(*(app.particles[i]), force_weight);
+    force_weight = vec2_scale(gravity, app.bodys[i]->mass);
+    body_add_force(*(app.bodys[i]), force_weight);
 
     //
     // Apply a drag force.
     //
 
-    force_drag = generate_drag_force(*(app.particles[i]), 0.01f);
-    particle_add_force(*(app.particles[i]), force_drag);
+    force_drag = generate_drag_force(*(app.bodys[i]), 0.01f);
+    body_add_force(*(app.bodys[i]), force_drag);
 
     //
-    // Apply the drag force to each particle if the particle is inside the
+    // Apply the drag force to each body if the body is inside the
     // liquid.
     //
 
-    //if (app.particles[i]->position.y >= app.fluid.y) {
-    //  force_drag = generate_drag_force(*(app.particles[i]), 0.01f);
-    //  particle_add_force(*(app.particles[i]), force_drag);
+    //if (app.bodys[i]->position.y >= app.fluid.y) {
+    //  force_drag = generate_drag_force(*(app.bodys[i]), 0.01f);
+    //  body_add_force(*(app.bodys[i]), force_drag);
     //}
   }
 
   //
   // Now that we've our forces, perform the integration step to calculate the
-  // position of each particle.
+  // position of each body.
   //
 
-  for (i = 0; i < num_particles; i++) {
-    particle_integrate(*(app.particles[i]), delta_time);
+  for (i = 0; i < num_bodys; i++) {
+    body_integrate(*(app.bodys[i]), delta_time);
   }
 
   //
-  // Clamp the particle's position to be inside the bounds of the screen.
+  // Clamp the body's position to be inside the bounds of the screen.
   //
 
   // Define a bottom that isn't quite the bottom of the screen. I find on my
-  // machine the bottom of the screen is not visible so particles go missing.
+  // machine the bottom of the screen is not visible so bodys go missing.
   bottom = app.gr.window_h * 0.9f;
 
-  for (i = 0; i < num_particles; i++) {
-    next_radius = app.particles[i]->radius;
+  for (i = 0; i < num_bodys; i++) {
+    next_radius = app.bodys[i]->radius;
 
-    bound = app.particles[i]->position.x - next_radius;
+    bound = app.bodys[i]->position.x - next_radius;
     if (bound <= 0) {
-      app.particles[i]->position.x = next_radius;
-      app.particles[i]->velocity.x *= -1.0f;
+      app.bodys[i]->position.x = next_radius;
+      app.bodys[i]->velocity.x *= -1.0f;
     }
 
-    bound = app.particles[i]->position.x + next_radius;
+    bound = app.bodys[i]->position.x + next_radius;
     if (bound> app.gr.window_w) {
-      app.particles[i]->position.x = app.gr.window_w - next_radius;
-      app.particles[i]->velocity.x *= -1.0f;
+      app.bodys[i]->position.x = app.gr.window_w - next_radius;
+      app.bodys[i]->velocity.x *= -1.0f;
     }
 
-    bound = app.particles[i]->position.y - next_radius;
+    bound = app.bodys[i]->position.y - next_radius;
     if (bound <= 0) {
-      app.particles[i]->position.y = next_radius;
-      app.particles[i]->velocity.y *= -1.0f;
+      app.bodys[i]->position.y = next_radius;
+      app.bodys[i]->velocity.y *= -1.0f;
     }
 
-    bound = app.particles[i]->position.y + next_radius;
+    bound = app.bodys[i]->position.y + next_radius;
     if (bound > bottom) {
-      app.particles[i]->position.y = bottom - next_radius;
-      app.particles[i]->velocity.y *= -1.0f;
+      app.bodys[i]->position.y = bottom - next_radius;
+      app.bodys[i]->velocity.y *= -1.0f;
     }
   }
 }
@@ -339,7 +339,7 @@ void app_draw(application& app) {
   size_t i;
   size_t j;
   size_t l;
-  size_t num_particles;
+  size_t num_bodys;
   size_t num_links;
 
   graphics_clear_screen(app.gr, 0xFF056263);
@@ -347,8 +347,8 @@ void app_draw(application& app) {
   if (app.left_mouse_button_down) {
     graphics_draw_line(
       app.gr,
-      app.particles[0]->position.x,
-      app.particles[0]->position.y,
+      app.bodys[0]->position.x,
+      app.bodys[0]->position.y,
       app.mouse_cursor.x,
       app.mouse_cursor.y,
       0xFF0000FF
@@ -368,9 +368,9 @@ void app_draw(application& app) {
   // Draw the spring and anchor.
   //
 
-  num_particles = app.particles.size();
+  num_bodys = app.bodys.size();
 
-  for (i = 0; i < num_particles; i++) {
+  for (i = 0; i < num_bodys; i++) {
     num_links = app.chain[i].links.size();
 
     for (j = 0; j < num_links; j++) {
@@ -378,19 +378,19 @@ void app_draw(application& app) {
 
       graphics_draw_line(
         app.gr,
-        app.particles[i]->position.x,
-        app.particles[i]->position.y,
-        app.particles[l]->position.x,
-        app.particles[l]->position.y,
+        app.bodys[i]->position.x,
+        app.bodys[i]->position.y,
+        app.bodys[l]->position.x,
+        app.bodys[l]->position.y,
         0xFF0000FF
       );
     }
 
     graphics_draw_fill_circle(
       app.gr,
-      app.particles[i]->position.x,
-      app.particles[i]->position.y,
-      app.particles[i]->radius,
+      app.bodys[i]->position.x,
+      app.bodys[i]->position.y,
+      app.bodys[i]->radius,
       0xFFFFFFFF
     );
   }
@@ -400,11 +400,11 @@ void app_draw(application& app) {
 
 void app_destroy(application& app) {
   size_t i;
-  size_t num_particles;
+  size_t num_bodys;
 
-  num_particles = app.particles.size();
-  for (i = 0; i < num_particles; i++) {
-    delete app.particles[i];
+  num_bodys = app.bodys.size();
+  for (i = 0; i < num_bodys; i++) {
+    delete app.bodys[i];
   }
 
   graphics_close_window(app.gr);

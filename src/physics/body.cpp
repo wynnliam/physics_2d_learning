@@ -1,9 +1,9 @@
 // Liam Wynn, 3-24-2026, 2D Physics Engine
 
-#include "./particle.h"
+#include "./body.h"
 
-void particle_init(
-  particle& p,
+void body_init(
+  body& p,
   const float x,
   const float y,
   const float mass
@@ -18,17 +18,17 @@ void particle_init(
     p.inv_mass = 1.0f / mass;
   }
 
-  particle_clear_forces(p);
+  body_clear_forces(p);
 }
 
-void particle_add_force(particle& p, const vec2def& force) {
+void body_add_force(body& p, const vec2def& force) {
   p.sum_force = vec2_add(force, p.sum_force);
 }
 
-void particle_integrate(particle& p, const float delta_time) {
+void body_integrate(body& p, const float delta_time) {
 
   //
-  // First, calculate the final acceleration of the particle for this frame. We
+  // First, calculate the final acceleration of the body for this frame. We
   // apply the law acceleration = force / mass to get the acceleration, and then
   // we perform a step of integration.
   //
@@ -49,9 +49,9 @@ void particle_integrate(particle& p, const float delta_time) {
   // this frame.
   //
 
-  particle_clear_forces(p);
+  body_clear_forces(p);
 }
 
-void particle_clear_forces(particle& p) {
+void body_clear_forces(body& p) {
   p.sum_force = vec2def(0.0f, 0.0f);
 }

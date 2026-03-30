@@ -8,7 +8,7 @@
 #define APPLICATION
 
 #include "./graphics.h"
-#include "./physics/particle.h"
+#include "./physics/body.h"
 #include <vector>
 
 struct chain_link {
@@ -23,13 +23,13 @@ struct application {
   vec2def mouse_cursor;
   bool left_mouse_button_down;
 
-  std::vector<particle*> particles;
+  std::vector<body*> bodys;
 
   vec2def push_force;
 
   SDL_Rect fluid;
 
-  // chain.size() == particles.size().
+  // chain.size() == bodys.size().
   std::vector<chain_link> chain;
 
   float spring_k;
