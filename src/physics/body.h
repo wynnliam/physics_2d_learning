@@ -5,8 +5,8 @@
   point-mass object without shape.
 */
 
-#ifndef PARTICLE
-#define PARTICLE
+#ifndef BODY
+#define BODY
 
 #include "./vec2def.h"
 
