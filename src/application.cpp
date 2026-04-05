@@ -13,6 +13,8 @@ static void insert_chain_link(
 );
 
 void app_setup(application& app) {
+  circledef circle;
+
   app.running = graphics_open_window(app.gr);
   app.time_prev_frame = SDL_GetTicks();
 
@@ -20,52 +22,34 @@ void app_setup(application& app) {
   app.spring_k = 300.0f;
   app.spring_rest_length = 80;
 
+  circle.radius = 4.0f;
+
   app.bodies.resize(app.chain.size());
 
   app.bodies[0] = new body;
-  body_init(*(app.bodies[0]), 50, 100, 2.0f);
-  app.bodies[0]->radius = 4;
+  body_init(*(app.bodies[0]), circle, 50, 100, 2.0f);
   insert_chain_link(app.chain[0].links, 1);
   insert_chain_link(app.chain[0].links, 2);
   insert_chain_link(app.chain[0].links, 3);
   
   app.bodies[1] = new body;
-  body_init(*(app.bodies[1]), 100, 100, 2.0f);
-  app.bodies[1]->radius = 4;
+  body_init(*(app.bodies[1]), circle, 100, 100, 2.0f);
   insert_chain_link(app.chain[1].links, 0);
   insert_chain_link(app.chain[1].links, 2);
   insert_chain_link(app.chain[1].links, 3);
   
   app.bodies[2] = new body;
-  body_init(*(app.bodies[2]), 50, 200, 2.0f);
-  app.bodies[2]->radius = 4;
+  body_init(*(app.bodies[2]), circle, 50, 200, 2.0f);
   insert_chain_link(app.chain[2].links, 0);
   insert_chain_link(app.chain[2].links, 1);
   insert_chain_link(app.chain[2].links, 3);
   
   app.bodies[3] = new body;
-  body_init(*(app.bodies[3]), 100, 200, 2.0f);
-  app.bodies[3]->radius = 4;
+  body_init(*(app.bodies[3]), circle, 100, 200, 2.0f);
   insert_chain_link(app.chain[3].links, 0);
   insert_chain_link(app.chain[3].links, 1);
   insert_chain_link(app.chain[3].links, 2);
   
-  //for (i = 0; i < app.bodies.size(); i++) {
-  //  app.bodies[i] = new body;
-  //  body_init(
-  //    *(app.bodies[i]),
-  //    app.gr.window_w / 2,
-  //    i * app.spring_rest_length + 50,
-  //    2.0f
-  //  );
-  //  app.bodies[i]->radius = 4;
-
-  //  if (i > 0) {
-  //    insert_chain_link(app.chain[i].links, i - 1);
-  //    insert_chain_link(app.chain[i - 1].links, i);
-  //  }
-  //}
-
   app.push_force = vec2def(0.0f, 0.0f);
 
   app.fluid.x = 0;
@@ -307,7 +291,9 @@ void app_update(application& app) {
   bottom = app.gr.window_h * 0.9f;
 
   for (i = 0; i < num_bodies; i++) {
-    next_radius = app.bodies[i]->radius;
+    // TODO: Need to define a way to actually calculate 4 vectors based on the
+    // shape: top, bottom, left, right. Maybe an AABB around the shape?
+    next_radius = 4;
 
     bound = app.bodies[i]->position.x - next_radius;
     if (bound <= 0) {
@@ -386,11 +372,11 @@ void app_draw(application& app) {
       );
     }
 
-    graphics_draw_fill_circle(
+    draw_shape(
       app.gr,
+      app.bodies[i]->shape,
       app.bodies[i]->position.x,
       app.bodies[i]->position.y,
-      app.bodies[i]->radius,
       0xFFFFFFFF
     );
   }

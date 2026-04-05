@@ -4,11 +4,13 @@
 
 void body_init(
   body& p,
+  const shapedef& shape,
   const float x,
   const float y,
   const float mass
 ) {
   p.position = vec2def(x, y);
+  p.shape = shape;
 
   if (mass == 0.0f) {
     p.mass = 1.0f;

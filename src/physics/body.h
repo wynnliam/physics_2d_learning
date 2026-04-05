@@ -9,6 +9,7 @@
 #define BODY
 
 #include "./vec2def.h"
+#include "./shape/shapedef.h"
 
 struct body {
   vec2def position;
@@ -17,10 +18,16 @@ struct body {
   float mass;
   float inv_mass;
   vec2def sum_force;
-  int radius;
+  shapedef shape;
 };
 
-void body_init(body& p, const float x, const float y, const float mass);
+void body_init(
+  body& p,
+  const shapedef& shape,
+  const float x,
+  const float y,
+  const float mass
+);
 
 void body_add_force(body& p, const vec2def& force);
 
