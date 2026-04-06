@@ -12,12 +12,28 @@
 #include "./shape/shapedef.h"
 
 struct body {
+  // Linear motion, linear force, mass.
   vec2def position;
   vec2def velocity;
   vec2def acceleration;
+
+  // Angular motion.
+  // N.B. rotation is in radians.
+  float rotation;
+  float angular_velocity;
+  float angular_acceleration;
+
+  // Forces and torque.
+  vec2def sum_force;
+  float sum_torque;
+
+  // Mass and Moment of Inertia.
   float mass;
   float inv_mass;
-  vec2def sum_force;
+  // N.B. in a lot of engines, they use I.
+  float inertia;
+  float inv_inertia;
+
   shapedef shape;
 };
 
@@ -31,9 +47,15 @@ void body_init(
 
 void body_add_force(body& p, const vec2def& force);
 
-void body_integrate(body& p, const float delta_time);
+void body_add_torque(body& p, const float torque);
+
+void body_integrate_linear(body& p, const float delta_time);
+
+void body_integrate_angular(body& p, const float delta_time);
 
 void body_clear_forces(body& p);
+
+void body_clear_torque(body& p);
 
 #endif
 

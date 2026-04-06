@@ -6,12 +6,18 @@ shape_type get_shape_type(const circledef& c) {
   return shape_type::CIRCLE;
 }
 
+float get_moment_of_inertia(const circledef& c) {
+  // N.B this needs to be multiplied by rigid body mass.
+  return 0.5f * (c.radius * c.radius);
+}
+
 void draw_shape(
   graphics& gr,
   const circledef& c,
   const int x,
   const int y,
+  const float angle,
   const uint32_t color
 ) {
-  graphics_draw_fill_circle(gr, x, y, c.radius, color);
+  graphics_draw_circle(gr, x, y, c.radius, angle, color);
 }

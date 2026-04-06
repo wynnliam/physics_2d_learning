@@ -18,6 +18,15 @@ bool graphics_open_window(graphics& g);
 
 void graphics_clear_screen(graphics& g, const uint32_t color);
 
+void graphics_draw_circle(
+  graphics& g,
+  const int x,
+  const int y,
+  const int radius,
+  const float angle,
+  const uint32_t color
+);
+
 void graphics_draw_fill_circle(
   graphics& g,
   const int x,

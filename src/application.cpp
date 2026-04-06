@@ -24,7 +24,7 @@ void app_setup(application& app) {
 
   circle.radius = 4.0f;
 
-  app.bodies.resize(app.chain.size());
+  app.bodies.resize(app.chain.size() + 1);
 
   app.bodies[0] = new body;
   body_init(*(app.bodies[0]), circle, 50, 100, 2.0f);
@@ -49,6 +49,16 @@ void app_setup(application& app) {
   insert_chain_link(app.chain[3].links, 0);
   insert_chain_link(app.chain[3].links, 1);
   insert_chain_link(app.chain[3].links, 2);
+
+  app.bodies[4] = new body;
+  circle.radius = 25.0f;
+  body_init(
+    *(app.bodies[4]),
+    circle,
+    app.gr.window_w / 2,
+    app.gr.window_h / 2,
+    40.0f
+  );
   
   app.push_force = vec2def(0.0f, 0.0f);
 
@@ -216,6 +226,9 @@ void app_update(application& app) {
   //
 
   for (i = 0; i < num_bodies; i++) {
+    if (i >= app.chain.size()) {
+      continue;
+    }
 
     //
     // Apply the push force.
@@ -234,20 +247,6 @@ void app_update(application& app) {
 
     //body_add_force(*(app.bodies[i]), force_friction);
 
-    num_links = app.chain[i].links.size();
-    for (j = 0; j < num_links; j++) {
-      l = app.chain[i].links[j];
-
-      force_spring = generate_spring_force(
-        *(app.bodies[i]),
-        *(app.bodies[l]),
-        app.spring_rest_length,
-        app.spring_k
-      );
-
-      body_add_force(*(app.bodies[i]), force_spring);
-    }
-
     //
     // Apply the weight force to each body.
     //
@@ -263,6 +262,24 @@ void app_update(application& app) {
     body_add_force(*(app.bodies[i]), force_drag);
 
     //
+    // Apply the spring chain force.
+    //
+
+    num_links = app.chain[i].links.size();
+    for (j = 0; j < num_links; j++) {
+      l = app.chain[i].links[j];
+
+      force_spring = generate_spring_force(
+        *(app.bodies[i]),
+        *(app.bodies[l]),
+        app.spring_rest_length,
+        app.spring_k
+      );
+
+      body_add_force(*(app.bodies[i]), force_spring);
+    }
+
+    //
     // Apply the drag force to each body if the body is inside the
     // liquid.
     //
@@ -273,13 +290,16 @@ void app_update(application& app) {
     //}
   }
 
+  body_add_torque(*(app.bodies[4]), 2000.0f);
+
   //
   // Now that we've our forces, perform the integration step to calculate the
   // position of each body.
   //
 
   for (i = 0; i < num_bodies; i++) {
-    body_integrate(*(app.bodies[i]), delta_time);
+    body_integrate_linear(*(app.bodies[i]), delta_time);
+    body_integrate_angular(*(app.bodies[i]), delta_time);
   }
 
   //
@@ -351,10 +371,10 @@ void app_draw(application& app) {
   //);
 
   //
-  // Draw the spring and anchor.
+  // Draw the spring lines.
   //
 
-  num_bodies = app.bodies.size();
+  num_bodies = app.chain.size();
 
   for (i = 0; i < num_bodies; i++) {
     num_links = app.chain[i].links.size();
@@ -371,12 +391,16 @@ void app_draw(application& app) {
         0xFF0000FF
       );
     }
+  }
 
+  num_bodies = app.bodies.size();
+  for (i = 0; i < num_bodies; i++) {
     draw_shape(
       app.gr,
       app.bodies[i]->shape,
       app.bodies[i]->position.x,
       app.bodies[i]->position.y,
+      app.bodies[i]->rotation,
       0xFFFFFFFF
     );
   }

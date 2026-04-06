@@ -10,24 +10,40 @@ void body_init(
   const float mass
 ) {
   p.position = vec2def(x, y);
+
+  p.rotation = 0.0f;
+  p.angular_velocity = 0.0f;
+  p.angular_acceleration = 0.0f;
+
   p.shape = shape;
 
-  if (mass == 0.0f) {
-    p.mass = 1.0f;
-    p.inv_mass = 1.0f;
+  p.mass = mass;
+  if (p.mass != 0.0f) {
+    p.inv_mass = 1.0f / p.mass;
   } else {
-    p.mass = mass;
-    p.inv_mass = 1.0f / mass;
+    p.inv_mass = 0.0f;
+  }
+
+  p.inertia = shape_get_moment_of_inertia(shape) * p.mass;
+  if (p.inertia != 0.0f) {
+    p.inv_inertia = 1.0f / p.inertia;
+  } else {
+    p.inv_inertia = 0.0f;
   }
 
   body_clear_forces(p);
+  body_clear_torque(p);
 }
 
 void body_add_force(body& p, const vec2def& force) {
   p.sum_force = vec2_add(force, p.sum_force);
 }
 
-void body_integrate(body& p, const float delta_time) {
+void body_add_torque(body& p, const float torque) {
+  p.sum_torque += torque;
+}
+
+void body_integrate_linear(body& p, const float delta_time) {
 
   //
   // First, calculate the final acceleration of the body for this frame. We
@@ -54,6 +70,33 @@ void body_integrate(body& p, const float delta_time) {
   body_clear_forces(p);
 }
 
+void body_integrate_angular(body& p, const float delta_time) {
+
+  //
+  // Compute the angular accelertaion using the formula a = I / t. N.B. this is
+  // a simplification of the torque formula t = F * d * sin(B). F is the force,
+  // d is the distance from the center of mass that the force hits, and B is
+  // the angle of the force.
+  //
+
+  p.angular_acceleration = p.sum_torque * p.inv_inertia;
+
+  //
+  // Perform two steps of Euler Integration to find the rotation. First we
+  // integrate the angular acceleration to find the velocity; and then we
+  // integrate the angular velocity to find the rotation.
+  //
+
+  p.angular_velocity += p.angular_acceleration * delta_time;
+  p.rotation += p.angular_velocity * delta_time;
+
+  body_clear_torque(p);
+}
+
 void body_clear_forces(body& p) {
   p.sum_force = vec2def(0.0f, 0.0f);
+}
+
+void body_clear_torque(body& p) {
+  p.sum_torque = 0.0f;
 }

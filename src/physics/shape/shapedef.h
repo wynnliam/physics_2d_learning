@@ -18,11 +18,14 @@ using shapedef = std::variant<
 
 shape_type get_shape_type(const shapedef& s);
 
+float shape_get_moment_of_inertia(const shapedef& s);
+
 void draw_shape(
   graphics& gr,
   const shapedef& s,
   const int x,
   const int y,
+  const float angle,
   const uint32_t color
 );
 

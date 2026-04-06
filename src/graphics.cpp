@@ -52,6 +52,25 @@ void graphics_clear_screen(graphics& g, const uint32_t color) {
   SDL_RenderClear(g.renderer);
 }
 
+void graphics_draw_circle(
+  graphics& g,
+  const int x,
+  const int y,
+  const int radius,
+  const float angle,
+  const uint32_t color
+) {
+  circleColor(g.renderer, x, y, radius, color);
+  lineColor(
+    g.renderer,
+    x,
+    y,
+    x + cos(angle) * radius,
+    y + sin(angle) * radius,
+    color
+  );
+}
+
 void graphics_draw_fill_circle(
   graphics& g,
   const int x,

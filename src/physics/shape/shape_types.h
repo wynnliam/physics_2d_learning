@@ -36,11 +36,16 @@ shape_type get_shape_type(const circledef& c);
 shape_type get_shape_type(const boxdef& b);
 shape_type get_shape_type(const polydef& p);
 
+float get_moment_of_inertia(const circledef& c);
+float get_moment_of_inertia(const boxdef& b);
+float get_moment_of_inertia(const polydef& p);
+
 void draw_shape(
   graphics& gr,
   const circledef& c,
   const int x,
   const int y,
+  const float angle,
   const uint32_t color
 );
 
@@ -49,6 +54,7 @@ void draw_shape(
   const boxdef& b,
   const int x,
   const int y,
+  const float angle,
   const uint32_t color
 );
 
@@ -57,6 +63,7 @@ void draw_shape(
   const polydef& p,
   const int x,
   const int y,
+  const float angle,
   const uint32_t color
 );
 
