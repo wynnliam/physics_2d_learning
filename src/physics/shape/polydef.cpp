@@ -2,6 +2,9 @@
 
 #include "./shape_types.h"
 
+void shape_init(polydef& p) {
+}
+
 shape_type get_shape_type(const polydef& p) {
   return shape_type::POLYGON;
 }

@@ -3,6 +3,7 @@
 #ifndef GRAPHICS
 #define GRAPHICS
 
+#include "./physics/vec2def.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <vector>
@@ -41,6 +42,15 @@ void graphics_draw_fill_rect(
   const int y,
   const int w,
   const int h,
+  const uint32_t color
+);
+
+void graphics_draw_polygon(
+  graphics& g,
+  const int x,
+  const int y,
+  const size_t num_verts,
+  const vec2def* verts,
   const uint32_t color
 );
 

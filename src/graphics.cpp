@@ -99,6 +99,33 @@ void graphics_draw_fill_rect(
   );
 }
 
+void graphics_draw_polygon(
+  graphics& g,
+  const int x,
+  const int y,
+  const size_t num_verts,
+  const vec2def* verts,
+  const uint32_t color
+) {
+  size_t i;
+  size_t i1;
+
+  for (i = 0; i < num_verts; i++) {
+    i1 = (i + 1) % num_verts;
+
+    lineColor(
+      g.renderer,
+      verts[i].x,
+      verts[i].y,
+      verts[i1].x,
+      verts[i1].y,
+      color
+    );
+  }
+
+  filledCircleColor(g.renderer, x, y, 1, color);
+}
+
 void graphics_draw_line(
   graphics& g,
   const int x0,

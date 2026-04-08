@@ -2,6 +2,10 @@
 
 #include "./shape_types.h"
 
+void shape_init(circledef& c) {
+  // Nothing to do
+}
+
 shape_type get_shape_type(const circledef& c) {
   return shape_type::CIRCLE;
 }

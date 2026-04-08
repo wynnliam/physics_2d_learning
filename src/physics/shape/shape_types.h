@@ -13,6 +13,11 @@
 #include "../vec2def.h"
 #include <vector>
 
+#define BOX_TL  0
+#define BOX_TR  1
+#define BOX_BR  2
+#define BOX_BL  3
+
 enum class shape_type {
   CIRCLE,
   BOX,
@@ -26,11 +31,17 @@ struct circledef {
 struct boxdef {
   float width;
   float height;
+
+  vec2def verts[4];
 };
 
 struct polydef {
   std::vector<vec2def> vertices;
 };
+
+void shape_init(circledef& c);
+void shape_init(boxdef& b);
+void shape_init(polydef& p);
 
 shape_type get_shape_type(const circledef& c);
 shape_type get_shape_type(const boxdef& b);

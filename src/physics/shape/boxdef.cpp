@@ -2,6 +2,26 @@
 
 #include "./shape_types.h"
 
+void shape_init(boxdef& b) {
+
+  //
+  // Set each vertex around the origin (0, 0).
+  // N.B. up is -y.
+  //
+
+  b.verts[BOX_TL].x = -(b.width / 2);
+  b.verts[BOX_TL].y = -(b.height / 2);
+
+  b.verts[BOX_TR].x =  (b.width / 2);
+  b.verts[BOX_TR].y = -(b.height / 2);
+
+  b.verts[BOX_BR].x =  (b.width / 2);
+  b.verts[BOX_BR].y =  (b.height / 2);
+
+  b.verts[BOX_BL].x = -(b.width / 2);
+  b.verts[BOX_BL].y =  (b.height / 2);
+}
+
 shape_type get_shape_type(const boxdef& b) {
   return shape_type::BOX;
 }
@@ -20,8 +40,12 @@ void draw_shape(
   const uint32_t color
 ) {
 
-  //
-  // TODO: Finish me!
-  //
-
+  graphics_draw_polygon(
+    gr,
+    x,
+    y,
+    4,
+    b.verts,
+    color
+  );
 }

@@ -13,6 +13,7 @@ static void insert_chain_link(
 );
 
 void app_setup(application& app) {
+  boxdef box;
   circledef circle;
 
   app.running = graphics_open_window(app.gr);
@@ -23,8 +24,9 @@ void app_setup(application& app) {
   app.spring_rest_length = 80;
 
   circle.radius = 4.0f;
+  shape_init(circle);
 
-  app.bodies.resize(app.chain.size() + 1);
+  app.bodies.resize(app.chain.size() + 2);
 
   app.bodies[0] = new body;
   body_init(*(app.bodies[0]), circle, 50, 100, 2.0f);
@@ -52,12 +54,25 @@ void app_setup(application& app) {
 
   app.bodies[4] = new body;
   circle.radius = 25.0f;
+  shape_init(circle);
   body_init(
     *(app.bodies[4]),
     circle,
     app.gr.window_w / 2,
     app.gr.window_h / 2,
     40.0f
+  );
+
+  box.width = 200;
+  box.height = 100;
+  shape_init(box);
+  app.bodies[5] = new body;
+  body_init(
+    *(app.bodies[5]),
+    box,
+    (app.gr.window_w / 2) + 300,
+    (app.gr.window_h / 2) + 10,
+    100.0f
   );
   
   app.push_force = vec2def(0.0f, 0.0f);
