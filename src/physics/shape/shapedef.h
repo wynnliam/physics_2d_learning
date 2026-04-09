@@ -20,6 +20,8 @@ shape_type get_shape_type(const shapedef& s);
 
 float shape_get_moment_of_inertia(const shapedef& s);
 
+void shape_transform(shapedef& s, const vec2def& pos, const float angle);
+
 void draw_shape(
   graphics& gr,
   const shapedef& s,

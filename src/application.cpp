@@ -4,6 +4,7 @@
 #include "./physics/constants.h"
 #include "./physics/force.h"
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -72,7 +73,7 @@ void app_setup(application& app) {
     box,
     (app.gr.window_w / 2) + 300,
     (app.gr.window_h / 2) + 10,
-    100.0f
+    1.0f
   );
   
   app.push_force = vec2def(0.0f, 0.0f);
@@ -306,6 +307,7 @@ void app_update(application& app) {
   }
 
   body_add_torque(*(app.bodies[4]), 2000.0f);
+  body_add_torque(*(app.bodies[5]), 200.0f);
 
   //
   // Now that we've our forces, perform the integration step to calculate the
@@ -313,8 +315,7 @@ void app_update(application& app) {
   //
 
   for (i = 0; i < num_bodies; i++) {
-    body_integrate_linear(*(app.bodies[i]), delta_time);
-    body_integrate_angular(*(app.bodies[i]), delta_time);
+    body_update(*(app.bodies[i]), delta_time);
   }
 
   //

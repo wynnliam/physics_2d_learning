@@ -49,6 +49,8 @@ void body_add_force(body& p, const vec2def& force);
 
 void body_add_torque(body& p, const float torque);
 
+void body_update(body& p, const float delta_time);
+
 void body_integrate_linear(body& p, const float delta_time);
 
 void body_integrate_angular(body& p, const float delta_time);

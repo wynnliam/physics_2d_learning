@@ -32,11 +32,14 @@ struct boxdef {
   float width;
   float height;
 
-  vec2def verts[4];
+  vec2def local_verts[4];
+  vec2def world_verts[4];
 };
 
 struct polydef {
-  std::vector<vec2def> vertices;
+  std::vector<vec2def> local_vertices;
+
+  std::vector<vec2def> world_vertices;
 };
 
 void shape_init(circledef& c);
@@ -50,6 +53,10 @@ shape_type get_shape_type(const polydef& p);
 float get_moment_of_inertia(const circledef& c);
 float get_moment_of_inertia(const boxdef& b);
 float get_moment_of_inertia(const polydef& p);
+
+void transform_shape(circledef& c, const vec2def& pos, const float angle);
+void transform_shape(boxdef& b, const vec2def& pos, const float angle);
+void transform_shape(polydef& p, const vec2def& pos, const float angle);
 
 void draw_shape(
   graphics& gr,

@@ -13,6 +13,13 @@ float shape_get_moment_of_inertia(const shapedef& s) {
   );
 }
 
+void shape_transform(shapedef& s, const vec2def& pos, const float angle) {
+  std::visit(
+    [&pos, angle](auto& arg) { transform_shape(arg, pos, angle); },
+    s
+  );
+}
+
 void draw_shape(
   graphics& gr,
   const shapedef& s,

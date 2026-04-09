@@ -13,6 +13,14 @@ float get_moment_of_inertia(const polydef& p) {
   return 3.0f;
 }
 
+void transform_shape(polydef& p, const vec2def& pos, const float angle) {
+
+  //
+  // TODO: Iterate over all verts and transform.
+  //
+
+}
+
 void draw_shape(
   graphics& gr,
   const polydef& p,

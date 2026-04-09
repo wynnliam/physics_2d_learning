@@ -15,6 +15,14 @@ float get_moment_of_inertia(const circledef& c) {
   return 0.5f * (c.radius * c.radius);
 }
 
+void transform_shape(circledef& c, const vec2def& pos, const float angle) {
+
+  //
+  // Nothing to do here.
+  //
+
+}
+
 void draw_shape(
   graphics& gr,
   const circledef& c,

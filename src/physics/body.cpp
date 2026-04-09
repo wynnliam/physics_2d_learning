@@ -43,6 +43,12 @@ void body_add_torque(body& p, const float torque) {
   p.sum_torque += torque;
 }
 
+void body_update(body& p, const float delta_time) {
+  body_integrate_linear(p, delta_time);
+  body_integrate_angular(p, delta_time);
+  shape_transform(p.shape, p.position, p.rotation);
+}
+
 void body_integrate_linear(body& p, const float delta_time) {
 
   //
