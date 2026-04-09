@@ -1,6 +1,7 @@
 // Liam Wynn, 3-24-2026, 2D Physics Engine
 
 #include "./application.h"
+#include "./physics/collision.h"
 #include "./physics/constants.h"
 #include "./physics/force.h"
 #include <algorithm>
@@ -200,7 +201,7 @@ void app_update(application& app) {
   int frame_delta;
   vec2def gravity;
   size_t i;
-  //size_t j;
+  size_t j;
   //size_t l;
   float next_radius;
   //size_t num_links;
@@ -319,6 +320,18 @@ void app_update(application& app) {
 
   for (i = 0; i < num_bodies; i++) {
     body_update(*(app.bodies[i]), delta_time);
+  }
+
+  //
+  // Handle collisions.
+  //
+
+  for (i = 0; i < num_bodies; i++) {
+    for (j = i + 1; j < num_bodies; j++) {
+      if (is_colliding(app.bodies[i], app.bodies[j])) {
+        cout << "Bang!" << endl;
+      }
+    }
   }
 
   //
