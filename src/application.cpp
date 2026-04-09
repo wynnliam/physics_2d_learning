@@ -14,65 +14,63 @@ static void insert_chain_link(
 );
 
 void app_setup(application& app) {
-  boxdef box;
   circledef circle;
 
   app.running = graphics_open_window(app.gr);
   app.time_prev_frame = SDL_GetTicks();
 
-  app.chain.resize(4);
-  app.spring_k = 300.0f;
-  app.spring_rest_length = 80;
+  //app.chain.resize(4);
+  //app.spring_k = 300.0f;
+  //app.spring_rest_length = 80;
 
-  circle.radius = 4.0f;
-  shape_init(circle);
+  //app.bodies.resize(app.chain.size() + 2);
+  app.bodies.resize(2);
 
-  app.bodies.resize(app.chain.size() + 2);
+  //circle.radius = 4.0f;
+  //shape_init(circle);
+  //app.bodies[0] = new body;
+  //body_init(*(app.bodies[0]), circle, 50, 100, 2.0f);
+  //insert_chain_link(app.chain[0].links, 1);
+  //insert_chain_link(app.chain[0].links, 2);
+  //insert_chain_link(app.chain[0].links, 3);
+  //
+  //app.bodies[1] = new body;
+  //body_init(*(app.bodies[1]), circle, 100, 100, 2.0f);
+  //insert_chain_link(app.chain[1].links, 0);
+  //insert_chain_link(app.chain[1].links, 2);
+  //insert_chain_link(app.chain[1].links, 3);
+  //
+  //app.bodies[2] = new body;
+  //body_init(*(app.bodies[2]), circle, 50, 200, 2.0f);
+  //insert_chain_link(app.chain[2].links, 0);
+  //insert_chain_link(app.chain[2].links, 1);
+  //insert_chain_link(app.chain[2].links, 3);
+  //
+  //app.bodies[3] = new body;
+  //body_init(*(app.bodies[3]), circle, 100, 200, 2.0f);
+  //insert_chain_link(app.chain[3].links, 0);
+  //insert_chain_link(app.chain[3].links, 1);
+  //insert_chain_link(app.chain[3].links, 2);
 
   app.bodies[0] = new body;
-  body_init(*(app.bodies[0]), circle, 50, 100, 2.0f);
-  insert_chain_link(app.chain[0].links, 1);
-  insert_chain_link(app.chain[0].links, 2);
-  insert_chain_link(app.chain[0].links, 3);
-  
-  app.bodies[1] = new body;
-  body_init(*(app.bodies[1]), circle, 100, 100, 2.0f);
-  insert_chain_link(app.chain[1].links, 0);
-  insert_chain_link(app.chain[1].links, 2);
-  insert_chain_link(app.chain[1].links, 3);
-  
-  app.bodies[2] = new body;
-  body_init(*(app.bodies[2]), circle, 50, 200, 2.0f);
-  insert_chain_link(app.chain[2].links, 0);
-  insert_chain_link(app.chain[2].links, 1);
-  insert_chain_link(app.chain[2].links, 3);
-  
-  app.bodies[3] = new body;
-  body_init(*(app.bodies[3]), circle, 100, 200, 2.0f);
-  insert_chain_link(app.chain[3].links, 0);
-  insert_chain_link(app.chain[3].links, 1);
-  insert_chain_link(app.chain[3].links, 2);
-
-  app.bodies[4] = new body;
-  circle.radius = 25.0f;
+  circle.radius = 100.0f;
   shape_init(circle);
   body_init(
-    *(app.bodies[4]),
+    *(app.bodies[0]),
     circle,
-    app.gr.window_w / 2,
-    app.gr.window_h / 2,
+    100,
+    100,
     40.0f
   );
 
-  box.width = 200;
-  box.height = 100;
-  shape_init(box);
-  app.bodies[5] = new body;
+  app.bodies[1] = new body;
+  circle.radius = 50.0f;
+  shape_init(circle);
   body_init(
-    *(app.bodies[5]),
-    box,
-    (app.gr.window_w / 2) + 300,
-    (app.gr.window_h / 2) + 10,
+    *(app.bodies[1]),
+    circle,
+    500,
+    100,
     1.0f
   );
   
@@ -93,10 +91,10 @@ bool app_is_running(application& app) {
 void app_input(application& app) {
   SDL_Event event;
   vec2def impulse_dir;
-  float impulse_mag;
+  //float impulse_mag;
   vec2def mouse_to_p0;
-  int x;
-  int y;
+  //int x;
+  //int y;
 
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
@@ -157,31 +155,31 @@ void app_input(application& app) {
       }
 
       case SDL_MOUSEBUTTONDOWN: {
-        if (event.button.button == SDL_BUTTON_LEFT) {
-          app.left_mouse_button_down = true;
-          SDL_GetMouseState(&x, &y);
-          app.mouse_cursor.x = x;
-          app.mouse_cursor.y = y;
-        }
+        //if (event.button.button == SDL_BUTTON_LEFT) {
+        //  app.left_mouse_button_down = true;
+        //  SDL_GetMouseState(&x, &y);
+        //  app.mouse_cursor.x = x;
+        //  app.mouse_cursor.y = y;
+        //}
 
         break;
       }
 
       case SDL_MOUSEBUTTONUP: {
-        if (app.left_mouse_button_down) {
-          if (event.button.button == SDL_BUTTON_LEFT) {
-            app.left_mouse_button_down = false;
+        //if (app.left_mouse_button_down) {
+        //  if (event.button.button == SDL_BUTTON_LEFT) {
+        //    app.left_mouse_button_down = false;
 
-            mouse_to_p0 = vec2_sub(
-              app.bodies[0]->position,
-              app.mouse_cursor
-            );
-            impulse_dir = vec2_norm(mouse_to_p0);
-            impulse_mag = vec2_magnitude(mouse_to_p0) * 5.0f;
+        //    mouse_to_p0 = vec2_sub(
+        //      app.bodies[0]->position,
+        //      app.mouse_cursor
+        //    );
+        //    impulse_dir = vec2_norm(mouse_to_p0);
+        //    impulse_mag = vec2_magnitude(mouse_to_p0) * 5.0f;
 
-            app.bodies[0]->velocity = vec2_scale(impulse_dir, impulse_mag);
-          }
-        }
+        //    app.bodies[0]->velocity = vec2_scale(impulse_dir, impulse_mag);
+        //  }
+        //}
 
         break;
       }
@@ -195,16 +193,17 @@ void app_update(application& app) {
   float bound;
   float delta_time;
   vec2def force_drag;
+  vec2def force_friction;
   vec2def force_spring;
   vec2def force_weight;
-  vec2def force_friction;
-  vec2def gravity;
+  vec2def force_wind;
   int frame_delta;
+  vec2def gravity;
   size_t i;
-  size_t j;
-  size_t l;
+  //size_t j;
+  //size_t l;
   float next_radius;
-  size_t num_links;
+  //size_t num_links;
   size_t num_bodies;
   int time_to_wait;
 
@@ -236,21 +235,19 @@ void app_update(application& app) {
   num_bodies = app.bodies.size();
 
   gravity = vec2def(0.0f, 9.81 * PIXELS_PER_METERS);
+  force_wind = vec2def(20.0f * PIXELS_PER_METERS, 0.0f);
 
   //
   // Apply each force to the bodies.
   //
 
   for (i = 0; i < num_bodies; i++) {
-    if (i >= app.chain.size()) {
-      continue;
-    }
 
     //
     // Apply the push force.
     //
 
-    body_add_force(*(app.bodies[i]), app.push_force);
+    //body_add_force(*(app.bodies[i]), app.push_force);
 
     //
     // Apply friction.
@@ -271,29 +268,35 @@ void app_update(application& app) {
     body_add_force(*(app.bodies[i]), force_weight);
 
     //
+    // Apply a wind force.
+    //
+
+    body_add_force(*(app.bodies[i]), force_wind);
+
+    //
     // Apply a drag force.
     //
 
-    force_drag = generate_drag_force(*(app.bodies[i]), 0.01f);
-    body_add_force(*(app.bodies[i]), force_drag);
+    //force_drag = generate_drag_force(*(app.bodies[i]), 0.01f);
+    //body_add_force(*(app.bodies[i]), force_drag);
 
     //
     // Apply the spring chain force.
     //
 
-    num_links = app.chain[i].links.size();
-    for (j = 0; j < num_links; j++) {
-      l = app.chain[i].links[j];
+    //num_links = app.chain[i].links.size();
+    //for (j = 0; j < num_links; j++) {
+    //  l = app.chain[i].links[j];
 
-      force_spring = generate_spring_force(
-        *(app.bodies[i]),
-        *(app.bodies[l]),
-        app.spring_rest_length,
-        app.spring_k
-      );
+    //  force_spring = generate_spring_force(
+    //    *(app.bodies[i]),
+    //    *(app.bodies[l]),
+    //    app.spring_rest_length,
+    //    app.spring_k
+    //  );
 
-      body_add_force(*(app.bodies[i]), force_spring);
-    }
+    //  body_add_force(*(app.bodies[i]), force_spring);
+    //}
 
     //
     // Apply the drag force to each body if the body is inside the
@@ -306,8 +309,8 @@ void app_update(application& app) {
     //}
   }
 
-  body_add_torque(*(app.bodies[4]), 2000.0f);
-  body_add_torque(*(app.bodies[5]), 200.0f);
+  //body_add_torque(*(app.bodies[0]), 2000.0f);
+  //body_add_torque(*(app.bodies[1]), 200.0f);
 
   //
   // Now that we've our forces, perform the integration step to calculate the
@@ -359,23 +362,23 @@ void app_update(application& app) {
 
 void app_draw(application& app) {
   size_t i;
-  size_t j;
-  size_t l;
+  //size_t j;
+  //size_t l;
   size_t num_bodies;
-  size_t num_links;
+  //size_t num_links;
 
   graphics_clear_screen(app.gr, 0xFF056263);
 
-  if (app.left_mouse_button_down) {
-    graphics_draw_line(
-      app.gr,
-      app.bodies[0]->position.x,
-      app.bodies[0]->position.y,
-      app.mouse_cursor.x,
-      app.mouse_cursor.y,
-      0xFF0000FF
-    );
-  }
+  //if (app.left_mouse_button_down) {
+  //  graphics_draw_line(
+  //    app.gr,
+  //    app.bodies[0]->position.x,
+  //    app.bodies[0]->position.y,
+  //    app.mouse_cursor.x,
+  //    app.mouse_cursor.y,
+  //    0xFF0000FF
+  //  );
+  //}
 
   //graphics_draw_fill_rect(
   //  app.gr,
@@ -390,24 +393,24 @@ void app_draw(application& app) {
   // Draw the spring lines.
   //
 
-  num_bodies = app.chain.size();
+  //num_bodies = app.chain.size();
 
-  for (i = 0; i < num_bodies; i++) {
-    num_links = app.chain[i].links.size();
+  //for (i = 0; i < num_bodies; i++) {
+  //  num_links = app.chain[i].links.size();
 
-    for (j = 0; j < num_links; j++) {
-      l = app.chain[i].links[j];
+  //  for (j = 0; j < num_links; j++) {
+  //    l = app.chain[i].links[j];
 
-      graphics_draw_line(
-        app.gr,
-        app.bodies[i]->position.x,
-        app.bodies[i]->position.y,
-        app.bodies[l]->position.x,
-        app.bodies[l]->position.y,
-        0xFF0000FF
-      );
-    }
-  }
+  //    graphics_draw_line(
+  //      app.gr,
+  //      app.bodies[i]->position.x,
+  //      app.bodies[i]->position.y,
+  //      app.bodies[l]->position.x,
+  //      app.bodies[l]->position.y,
+  //      0xFF0000FF
+  //    );
+  //  }
+  //}
 
   num_bodies = app.bodies.size();
   for (i = 0; i < num_bodies; i++) {

@@ -30,10 +30,9 @@ struct application {
   SDL_Rect fluid;
 
   // chain.size() == bodies.size().
-  std::vector<chain_link> chain;
-
-  float spring_k;
-  float spring_rest_length;
+  //std::vector<chain_link> chain;
+  //float spring_k;
+  //float spring_rest_length;
 };
 
 void app_setup(application& app);
