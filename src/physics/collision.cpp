@@ -9,19 +9,26 @@ static bool shape_collision(
   const circledef& a,
   const circledef& b,
   const vec2def& apos,
-  const vec2def& bpos
+  const vec2def& bpos,
+  collision_contact& contact
 );
 
 // Generic not-yet-impl routine.
 template<typename A, typename B>
-static bool shape_collision(const A&, const B&, const vec2def&, const vec2def&);
+static bool shape_collision(
+  const A&,
+  const B&,
+  const vec2def&,
+  const vec2def&,
+  collision_contact&
+);
 
 /* MAIN API IMPL */
 
-bool is_colliding(const body* a, const body* b) {
+bool is_colliding(const body* a, const body* b, collision_contact& contact) {
   return std::visit(
     [&](const auto& s1, const auto& s2) {
-      return shape_collision(s1, s2, a->position, b->position);
+      return shape_collision(s1, s2, a->position, b->position, contact);
     },
     a->shape,
     b->shape
@@ -34,7 +41,8 @@ bool shape_collision(
   const circledef& a,
   const circledef& b,
   const vec2def& apos,
-  const vec2def& bpos
+  const vec2def& bpos,
+  collision_contact& contact
 ) {
   vec2def ab;
   float dist;
@@ -51,6 +59,12 @@ bool shape_collision(
 }
 
 template<typename A, typename B>
-bool shape_collision(const A&, const B&, const vec2def&, const vec2def&) {
+bool shape_collision(
+  const A&,
+  const B&,
+  const vec2def&,
+  const vec2def&,
+  collision_contact&
+) {
   return false;
 }

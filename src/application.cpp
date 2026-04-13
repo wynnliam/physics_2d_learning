@@ -195,6 +195,7 @@ void app_update(application& app) {
   vec2def attraction;
   float bottom;
   float bound;
+  collision_contact contact;
   float delta_time;
   vec2def force_drag;
   vec2def force_friction;
@@ -332,7 +333,7 @@ void app_update(application& app) {
 
   for (i = 0; i < num_bodies; i++) {
     for (j = i + 1; j < num_bodies; j++) {
-      if (is_colliding(app.bodies[i], app.bodies[j])) {
+      if (is_colliding(app.bodies[i], app.bodies[j], contact)) {
         app.bodies[i]->is_colliding = true;
         app.bodies[j]->is_colliding = true;
       }

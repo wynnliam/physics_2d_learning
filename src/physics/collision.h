@@ -22,6 +22,6 @@ struct collision_contact {
   float depth;
 };
 
-bool is_colliding(const body* a, const body* b);
+bool is_colliding(const body* a, const body* b, collision_contact& contact);
 
 #endif
