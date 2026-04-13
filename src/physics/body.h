@@ -12,6 +12,9 @@
 #include "./shape/shapedef.h"
 
 struct body {
+  // TODO: Testing -- please get rid of!!!
+  bool is_colliding;
+
   // Linear motion, linear force, mass.
   vec2def position;
   vec2def velocity;

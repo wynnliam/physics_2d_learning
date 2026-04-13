@@ -152,6 +152,9 @@ void app_input(application& app) {
         app.mouse_cursor.x = event.motion.x;
         app.mouse_cursor.y = event.motion.y;
 
+        app.bodies[0]->position.x = app.mouse_cursor.x;
+        app.bodies[0]->position.y = app.mouse_cursor.y;
+
         break;
       }
 
@@ -265,14 +268,14 @@ void app_update(application& app) {
     // Apply the weight force to each body.
     //
 
-    force_weight = vec2_scale(gravity, app.bodies[i]->mass);
-    body_add_force(*(app.bodies[i]), force_weight);
+    //force_weight = vec2_scale(gravity, app.bodies[i]->mass);
+    //body_add_force(*(app.bodies[i]), force_weight);
 
     //
     // Apply a wind force.
     //
 
-    body_add_force(*(app.bodies[i]), force_wind);
+    //body_add_force(*(app.bodies[i]), force_wind);
 
     //
     // Apply a drag force.
@@ -320,6 +323,7 @@ void app_update(application& app) {
 
   for (i = 0; i < num_bodies; i++) {
     body_update(*(app.bodies[i]), delta_time);
+    app.bodies[i]->is_colliding = false;
   }
 
   //
@@ -329,7 +333,8 @@ void app_update(application& app) {
   for (i = 0; i < num_bodies; i++) {
     for (j = i + 1; j < num_bodies; j++) {
       if (is_colliding(app.bodies[i], app.bodies[j])) {
-        cout << "Bang!" << endl;
+        app.bodies[i]->is_colliding = true;
+        app.bodies[j]->is_colliding = true;
       }
     }
   }
@@ -374,6 +379,7 @@ void app_update(application& app) {
 }
 
 void app_draw(application& app) {
+  uint32_t body_color;
   size_t i;
   //size_t j;
   //size_t l;
@@ -427,13 +433,18 @@ void app_draw(application& app) {
 
   num_bodies = app.bodies.size();
   for (i = 0; i < num_bodies; i++) {
+    body_color = 0xFFFFFFFF;
+    if (app.bodies[i]->is_colliding) {
+      body_color = 0xFFFF0000;
+    }
+
     draw_shape(
       app.gr,
       app.bodies[i]->shape,
       app.bodies[i]->position.x,
       app.bodies[i]->position.y,
       app.bodies[i]->rotation,
-      0xFFFFFFFF
+      body_color
     );
   }
 
