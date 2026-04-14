@@ -11,8 +11,8 @@
 #include "./shape/shapedef.h"
 
 struct collision_contact {
-  const body* a;
-  const body* b;
+  body* a;
+  body* b;
 
   // Contact points *from* a *to* b.
   vec2def start;
@@ -22,6 +22,8 @@ struct collision_contact {
   float depth;
 };
 
-bool is_colliding(const body* a, const body* b, collision_contact& contact);
+bool is_colliding(body* a, body* b, collision_contact& contact);
+
+void collision_solve_by_projection(collision_contact& contact);
 
 #endif

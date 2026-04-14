@@ -25,7 +25,6 @@ struct application {
   bool left_mouse_button_down;
 
   std::vector<body*> bodies;
-  std::vector<collision_contact> collisions; 
 
   vec2def push_force;
 

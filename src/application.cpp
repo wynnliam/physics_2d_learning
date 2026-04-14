@@ -329,11 +329,10 @@ void app_update(application& app) {
   // Handle collisions.
   //
 
-  app.collisions.clear();
   for (i = 0; i < num_bodies; i++) {
     for (j = i + 1; j < num_bodies; j++) {
       if (is_colliding(app.bodies[i], app.bodies[j], contact)) {
-        app.collisions.push_back(contact);
+        collision_solve_by_projection(contact);
       }
     }
   }
@@ -441,33 +440,6 @@ void app_draw(application& app) {
       app.bodies[i]->position.y,
       app.bodies[i]->rotation,
       body_color
-    );
-  }
-
-  for (i = 0; i < app.collisions.size(); i++) {
-    graphics_draw_line(
-      app.gr,
-      app.collisions[i].start.x,
-      app.collisions[i].start.y,
-      app.collisions[i].end.x,
-      app.collisions[i].end.y,
-      0xFFFF00FF
-    );
-
-    graphics_draw_fill_circle(
-      app.gr,
-      app.collisions[i].start.x,
-      app.collisions[i].start.y,
-      3,
-      0xFF0000FF
-    );
-
-    graphics_draw_fill_circle(
-      app.gr,
-      app.collisions[i].end.x,
-      app.collisions[i].end.y,
-      3,
-      0xFFFFFF00
     );
   }
 
