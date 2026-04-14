@@ -9,6 +9,7 @@
 
 #include "./graphics.h"
 #include "./physics/body.h"
+#include "./physics/collision.h"
 #include <vector>
 
 struct chain_link {
@@ -24,6 +25,7 @@ struct application {
   bool left_mouse_button_down;
 
   std::vector<body*> bodies;
+  std::vector<collision_contact> collisions; 
 
   vec2def push_force;
 

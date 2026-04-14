@@ -1,7 +1,6 @@
 // Liam Wynn, 3-24-2026, 2D Physics Engine
 
 #include "./application.h"
-#include "./physics/collision.h"
 #include "./physics/constants.h"
 #include "./physics/force.h"
 #include <algorithm>
@@ -324,18 +323,17 @@ void app_update(application& app) {
 
   for (i = 0; i < num_bodies; i++) {
     body_update(*(app.bodies[i]), delta_time);
-    app.bodies[i]->is_colliding = false;
   }
 
   //
   // Handle collisions.
   //
 
+  app.collisions.clear();
   for (i = 0; i < num_bodies; i++) {
     for (j = i + 1; j < num_bodies; j++) {
       if (is_colliding(app.bodies[i], app.bodies[j], contact)) {
-        app.bodies[i]->is_colliding = true;
-        app.bodies[j]->is_colliding = true;
+        app.collisions.push_back(contact);
       }
     }
   }
@@ -435,9 +433,6 @@ void app_draw(application& app) {
   num_bodies = app.bodies.size();
   for (i = 0; i < num_bodies; i++) {
     body_color = 0xFFFFFFFF;
-    if (app.bodies[i]->is_colliding) {
-      body_color = 0xFFFF0000;
-    }
 
     draw_shape(
       app.gr,
@@ -446,6 +441,33 @@ void app_draw(application& app) {
       app.bodies[i]->position.y,
       app.bodies[i]->rotation,
       body_color
+    );
+  }
+
+  for (i = 0; i < app.collisions.size(); i++) {
+    graphics_draw_line(
+      app.gr,
+      app.collisions[i].start.x,
+      app.collisions[i].start.y,
+      app.collisions[i].end.x,
+      app.collisions[i].end.y,
+      0xFFFF00FF
+    );
+
+    graphics_draw_fill_circle(
+      app.gr,
+      app.collisions[i].start.x,
+      app.collisions[i].start.y,
+      3,
+      0xFF0000FF
+    );
+
+    graphics_draw_fill_circle(
+      app.gr,
+      app.collisions[i].end.x,
+      app.collisions[i].end.y,
+      3,
+      0xFFFFFF00
     );
   }
 
