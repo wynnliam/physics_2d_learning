@@ -71,7 +71,7 @@ void app_setup(application& app) {
     circle,
     500,
     100,
-    1.0f
+    0.0f
   );
   
   app.push_force = vec2def(0.0f, 0.0f);

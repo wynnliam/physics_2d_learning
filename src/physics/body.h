@@ -59,5 +59,7 @@ void body_clear_forces(body& p);
 
 void body_clear_torque(body& p);
 
+bool body_is_static(const body& p);
+
 #endif
 

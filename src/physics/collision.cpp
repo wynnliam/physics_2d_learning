@@ -39,30 +39,23 @@ bool is_colliding(body* a, body* b, collision_contact& contact) {
   );
 }
 
-  // Depth * (m1 / (m1 + m2))
 void collision_solve_by_projection(collision_contact& contact) {
   float delta_a;
   float delta_b;
-  float frac_a;
-  float frac_b;
   float mass_a;
   float mass_b;
   float mass_sum;
 
-  mass_a = contact.a->mass;
-  mass_b = contact.b->mass;
-  mass_sum = mass_a + mass_b;
-
-  // TODO: What do if here?
-  if (mass_sum == 0.0f) {
+  if (body_is_static(*(contact.a)) && body_is_static(*(contact.b))) {
     return;
   }
 
-  frac_a = mass_b / (mass_sum);
-  frac_b = mass_a / (mass_sum);
+  mass_a = contact.a->inv_mass;
+  mass_b = contact.b->inv_mass;
+  mass_sum = mass_a + mass_b;
 
-  delta_a = contact.depth * frac_a;
-  delta_b = contact.depth * frac_b;
+  delta_a = contact.depth / mass_sum * mass_a;
+  delta_b = contact.depth / mass_sum * mass_b;
 
   //
   // Use the deltas to move the positions.

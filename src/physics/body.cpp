@@ -44,6 +44,10 @@ void body_add_torque(body& p, const float torque) {
 }
 
 void body_update(body& p, const float delta_time) {
+  if (body_is_static(p)) {
+    return;
+  }
+
   body_integrate_linear(p, delta_time);
   body_integrate_angular(p, delta_time);
   shape_transform(p.shape, p.position, p.rotation);
@@ -105,4 +109,9 @@ void body_clear_forces(body& p) {
 
 void body_clear_torque(body& p) {
   p.sum_torque = 0.0f;
+}
+
+bool body_is_static(const body& p) {
+  const float epsilon = 0.005;
+  return fabs(p.inv_mass - 0.0f) < epsilon;
 }
