@@ -24,7 +24,7 @@ void app_setup(application& app) {
   //app.spring_rest_length = 80;
 
   //app.bodies.resize(app.chain.size() + 2);
-  app.bodies.resize(2);
+  app.bodies.resize(1);
 
   //circle.radius = 4.0f;
   //shape_init(circle);
@@ -53,27 +53,17 @@ void app_setup(application& app) {
   //insert_chain_link(app.chain[3].links, 2);
 
   app.bodies[0] = new body;
-  circle.radius = 100.0f;
+  circle.radius = 200.0f;
   shape_init(circle);
   body_init(
     *(app.bodies[0]),
     circle,
-    100,
-    100,
-    40.0f
+    app.gr.window_w / 2,
+    app.gr.window_h / 2,
+    0.0f,
+    1.0f
   );
 
-  app.bodies[1] = new body;
-  circle.radius = 50.0f;
-  shape_init(circle);
-  body_init(
-    *(app.bodies[1]),
-    circle,
-    500,
-    100,
-    0.0f
-  );
-  
   app.push_force = vec2def(0.0f, 0.0f);
 
   app.fluid.x = 0;
@@ -89,12 +79,14 @@ bool app_is_running(application& app) {
 }
 
 void app_input(application& app) {
+  body* b;
+  circledef c;
   SDL_Event event;
   vec2def impulse_dir;
   //float impulse_mag;
   vec2def mouse_to_p0;
-  //int x;
-  //int y;
+  int x;
+  int y;
 
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
@@ -148,11 +140,11 @@ void app_input(application& app) {
       }
 
       case SDL_MOUSEMOTION: {
-        app.mouse_cursor.x = event.motion.x;
-        app.mouse_cursor.y = event.motion.y;
+        //app.mouse_cursor.x = event.motion.x;
+        //app.mouse_cursor.y = event.motion.y;
 
-        app.bodies[0]->position.x = app.mouse_cursor.x;
-        app.bodies[0]->position.y = app.mouse_cursor.y;
+        //app.bodies[0]->position.x = app.mouse_cursor.x;
+        //app.bodies[0]->position.y = app.mouse_cursor.y;
 
         break;
       }
@@ -160,11 +152,18 @@ void app_input(application& app) {
       case SDL_MOUSEBUTTONDOWN: {
         //if (event.button.button == SDL_BUTTON_LEFT) {
         //  app.left_mouse_button_down = true;
-        //  SDL_GetMouseState(&x, &y);
         //  app.mouse_cursor.x = x;
         //  app.mouse_cursor.y = y;
         //}
 
+        SDL_GetMouseState(&x, &y);
+
+        c.radius = 20.0f;
+        shape_init(c);
+
+        b = new body;
+        body_init(*b, c, x, y, 20.0f, 0.2f);
+        app.bodies.push_back(b);
         break;
       }
 
@@ -268,14 +267,14 @@ void app_update(application& app) {
     // Apply the weight force to each body.
     //
 
-    //force_weight = vec2_scale(gravity, app.bodies[i]->mass);
-    //body_add_force(*(app.bodies[i]), force_weight);
+    force_weight = vec2_scale(gravity, app.bodies[i]->mass);
+    body_add_force(*(app.bodies[i]), force_weight);
 
     //
     // Apply a wind force.
     //
 
-    //body_add_force(*(app.bodies[i]), force_wind);
+    body_add_force(*(app.bodies[i]), force_wind);
 
     //
     // Apply a drag force.
@@ -332,7 +331,7 @@ void app_update(application& app) {
   for (i = 0; i < num_bodies; i++) {
     for (j = i + 1; j < num_bodies; j++) {
       if (is_colliding(app.bodies[i], app.bodies[j], contact)) {
-        collision_solve_by_projection(contact);
+        collision_solve_by_impulse(contact);
       }
     }
   }
@@ -353,25 +352,25 @@ void app_update(application& app) {
     bound = app.bodies[i]->position.x - next_radius;
     if (bound <= 0) {
       app.bodies[i]->position.x = next_radius;
-      app.bodies[i]->velocity.x *= -1.0f;
+      app.bodies[i]->velocity.x *= -0.9f;
     }
 
     bound = app.bodies[i]->position.x + next_radius;
     if (bound> app.gr.window_w) {
       app.bodies[i]->position.x = app.gr.window_w - next_radius;
-      app.bodies[i]->velocity.x *= -1.0f;
+      app.bodies[i]->velocity.x *= -0.9f;
     }
 
     bound = app.bodies[i]->position.y - next_radius;
     if (bound <= 0) {
       app.bodies[i]->position.y = next_radius;
-      app.bodies[i]->velocity.y *= -1.0f;
+      app.bodies[i]->velocity.y *= -0.9f;
     }
 
     bound = app.bodies[i]->position.y + next_radius;
     if (bound > bottom) {
       app.bodies[i]->position.y = bottom - next_radius;
-      app.bodies[i]->velocity.y *= -1.0f;
+      app.bodies[i]->velocity.y *= -0.9f;
     }
   }
 }

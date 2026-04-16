@@ -7,7 +7,8 @@ void body_init(
   const shapedef& shape,
   const float x,
   const float y,
-  const float mass
+  const float mass,
+  const float restitution
 ) {
   p.position = vec2def(x, y);
 
@@ -31,6 +32,8 @@ void body_init(
     p.inv_inertia = 0.0f;
   }
 
+  p.restitution = restitution;
+
   body_clear_forces(p);
   body_clear_torque(p);
 }
@@ -43,17 +46,24 @@ void body_add_torque(body& p, const float torque) {
   p.sum_torque += torque;
 }
 
-void body_update(body& p, const float delta_time) {
+void body_apply_impulse(body& p, const vec2def impulse) {
   if (body_is_static(p)) {
     return;
   }
 
+  p.velocity = vec2_add(p.velocity, vec2_scale(impulse, p.inv_mass));
+}
+
+void body_update(body& p, const float delta_time) {
   body_integrate_linear(p, delta_time);
   body_integrate_angular(p, delta_time);
   shape_transform(p.shape, p.position, p.rotation);
 }
 
 void body_integrate_linear(body& p, const float delta_time) {
+  if (body_is_static(p)) {
+    return;
+  }
 
   //
   // First, calculate the final acceleration of the body for this frame. We
@@ -81,6 +91,9 @@ void body_integrate_linear(body& p, const float delta_time) {
 }
 
 void body_integrate_angular(body& p, const float delta_time) {
+  if (body_is_static(p)) {
+    return;
+  }
 
   //
   // Compute the angular accelertaion using the formula a = I / t. N.B. this is

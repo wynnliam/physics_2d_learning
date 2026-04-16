@@ -26,4 +26,6 @@ bool is_colliding(body* a, body* b, collision_contact& contact);
 
 void collision_solve_by_projection(collision_contact& contact);
 
+void collision_solve_by_impulse(collision_contact& contact);
+
 #endif

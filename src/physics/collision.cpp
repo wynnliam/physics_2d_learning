@@ -72,6 +72,69 @@ void collision_solve_by_projection(collision_contact& contact) {
   );
 }
 
+void collision_solve_by_impulse(collision_contact& contact) {
+  body* a;
+  body* b;
+  float e;
+  vec2def impulse;
+  vec2def impulse_dir;
+  float impulse_mag;
+  vec2def vel_relative;
+  float vrdn;
+
+  //
+  // First, separate the two objects via the projection method.
+  //
+
+  collision_solve_by_projection(contact);
+
+  a = contact.a;
+  b = contact.b;
+
+  //
+  // Nothing to do if both a and b are static.
+  //
+
+  if (body_is_static(*a) && body_is_static(*b)) {
+    return;
+  }
+
+  //
+  // Choose elasticity to apply. N.B. there are many different ways we could
+  // handle this. I suspect one method is to have have an e for both a and b.
+  //
+
+  e = std::min(a->restitution, b->restitution);
+
+  //
+  // Now compute the relative velocity of between a and b.
+  //
+
+  vel_relative = vec2_sub(a->velocity, b->velocity);
+
+  //
+  // Now calculate the relative velocity along the normal. N.B. we do Velocity
+  // Relative Dot Normal.
+  //
+
+  vrdn = vec2_dot(vel_relative, contact.normal);
+
+  //
+  // Now compute the impulse.
+  //
+
+  impulse_mag = -(1 + e) * vrdn / (a->inv_mass + b->inv_mass);
+  impulse_dir = contact.normal;
+  impulse = vec2_scale(impulse_dir, impulse_mag);
+
+  //
+  // Lastly, apply the impulses.
+  //
+
+  body_apply_impulse(*a, impulse);
+  body_apply_impulse(*b, vec2_scale(impulse, -1));
+}
+
 /* SHAPE COLLISION ROUTINE IMPL */
 
 bool shape_collision(
