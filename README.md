@@ -13,3 +13,9 @@ does some parts in Javascript or something.
 1. `libsdl2-dev`
 2. `libsdl2-image-dev`
 3. `libsdl2-gfx-dev`
+
+# TODO
+Here is a list of things I want to make sure I add
+[ ] - Finish the lecture series
+[ ] - Different scenes demonstrating various concepts
+[ ] - Enforce counter-clockwise orientation of polygons

@@ -3,15 +3,27 @@
 #include "./collision.h"
 #include <variant>
 
-//
-// TODO: Replace vec2def args with body ptr
-//
-
 /* SHAPE COLLISION ROUTINES */
 
 static bool shape_collision(
   const circledef& a,
   const circledef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+);
+
+static bool shape_collision(
+  const boxdef& a,
+  const boxdef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+);
+
+static bool shape_collision(
+  const polydef& a,
+  const polydef& b,
   body* body_a,
   body* body_b,
   collision_contact& contact
@@ -26,6 +38,17 @@ static bool shape_collision(
   body*,
   collision_contact&
 );
+
+// General purpose collision handler for two polygons.
+static bool poly_collision(
+  const vec2def* a_verts,
+  const size_t a_vert_count,
+  body* body_a,
+  const vec2def* b_verts,
+  const size_t b_vert_count,
+  body* body_b,
+  collision_contact& contact
+); 
 
 /* MAIN API IMPL */
 
@@ -172,6 +195,54 @@ bool shape_collision(
   contact.depth = vec2_magnitude(vec2_sub(contact.end, contact.start));
 
   return true;
+}
+
+bool shape_collision(
+  const boxdef& a,
+  const boxdef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+) {
+  return poly_collision(
+    a.world_verts,
+    4,
+    body_a,
+    b.world_verts,
+    4,
+    body_b,
+    contact
+  );
+}
+
+bool shape_collision(
+  const polydef& a,
+  const polydef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+) {
+  return poly_collision(
+    a.world_vertices.data(),
+    a.world_vertices.size(),
+    body_a,
+    b.world_vertices.data(),
+    b.world_vertices.size(),
+    body_b,
+    contact
+  );
+}
+
+bool poly_collision(
+  const vec2def* a_verts,
+  const size_t a_vert_count,
+  body* body_a,
+  const vec2def* b_verts,
+  const size_t b_vert_count,
+  body* body_b,
+  collision_contact& contact
+) {
+  return false;
 }
 
 template<typename A, typename B>

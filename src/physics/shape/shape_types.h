@@ -3,6 +3,11 @@
 /*
   Here we define the possible rigid-body shape types we will implement in this
   engine.
+
+  For future reference, it's not clear to me that boxdef is really all that
+  useful here. If I were to keep it, I would define it as a strictly AABB box
+  to distinguish it from polydef. But even then, SAT would handle all the
+  things we'd want from it.
 */
 
 #ifndef SHAPE_TYPES
@@ -37,6 +42,11 @@ struct boxdef {
 };
 
 struct polydef {
+
+  //
+  // N.B. all vertices (local and world) must be defined in Clock-Wise Ordering.
+  //
+
   std::vector<vec2def> local_vertices;
 
   std::vector<vec2def> world_vertices;

@@ -15,6 +15,7 @@ static void insert_chain_link(
 
 void app_setup(application& app) {
   circledef circle;
+  boxdef box;
 
   app.running = graphics_open_window(app.gr);
   app.time_prev_frame = SDL_GetTicks();
@@ -24,7 +25,7 @@ void app_setup(application& app) {
   //app.spring_rest_length = 80;
 
   //app.bodies.resize(app.chain.size() + 2);
-  app.bodies.resize(1);
+  app.bodies.resize(2);
 
   //circle.radius = 4.0f;
   //shape_init(circle);
@@ -52,17 +53,31 @@ void app_setup(application& app) {
   //insert_chain_link(app.chain[3].links, 1);
   //insert_chain_link(app.chain[3].links, 2);
 
+  box.width = 200.0f;
+  box.height = 200.0f;
+  shape_init(box);
+
   app.bodies[0] = new body;
-  circle.radius = 200.0f;
-  shape_init(circle);
   body_init(
     *(app.bodies[0]),
-    circle,
+    box,
     app.gr.window_w / 2,
     app.gr.window_h / 2,
-    0.0f,
+    1.0f,
     1.0f
   );
+  app.bodies[0]->angular_velocity = 0.4f;
+
+  app.bodies[1] = new body;
+  body_init(
+    *(app.bodies[1]),
+    box,
+    app.gr.window_w / 2,
+    app.gr.window_h / 2,
+    1.0f,
+    1.0f
+  );
+  app.bodies[1]->angular_velocity = 0.1f;
 
   app.push_force = vec2def(0.0f, 0.0f);
 
@@ -140,11 +155,11 @@ void app_input(application& app) {
       }
 
       case SDL_MOUSEMOTION: {
-        //app.mouse_cursor.x = event.motion.x;
-        //app.mouse_cursor.y = event.motion.y;
+        app.mouse_cursor.x = event.motion.x;
+        app.mouse_cursor.y = event.motion.y;
 
-        //app.bodies[0]->position.x = app.mouse_cursor.x;
-        //app.bodies[0]->position.y = app.mouse_cursor.y;
+        app.bodies[0]->position.x = app.mouse_cursor.x;
+        app.bodies[0]->position.y = app.mouse_cursor.y;
 
         break;
       }
@@ -156,15 +171,15 @@ void app_input(application& app) {
         //  app.mouse_cursor.y = y;
         //}
 
-        SDL_GetMouseState(&x, &y);
+        //SDL_GetMouseState(&x, &y);
 
-        c.radius = 20.0f;
-        shape_init(c);
+        //c.radius = 20.0f;
+        //shape_init(c);
 
-        b = new body;
-        body_init(*b, c, x, y, 20.0f, 0.2f);
-        app.bodies.push_back(b);
-        break;
+        //b = new body;
+        //body_init(*b, c, x, y, 20.0f, 0.2f);
+        //app.bodies.push_back(b);
+        //break;
       }
 
       case SDL_MOUSEBUTTONUP: {
@@ -267,14 +282,14 @@ void app_update(application& app) {
     // Apply the weight force to each body.
     //
 
-    force_weight = vec2_scale(gravity, app.bodies[i]->mass);
-    body_add_force(*(app.bodies[i]), force_weight);
+    //force_weight = vec2_scale(gravity, app.bodies[i]->mass);
+    //body_add_force(*(app.bodies[i]), force_weight);
 
     //
     // Apply a wind force.
     //
 
-    body_add_force(*(app.bodies[i]), force_wind);
+    //body_add_force(*(app.bodies[i]), force_wind);
 
     //
     // Apply a drag force.
@@ -328,10 +343,12 @@ void app_update(application& app) {
   // Handle collisions.
   //
 
+  app.collisions.clear();
   for (i = 0; i < num_bodies; i++) {
     for (j = i + 1; j < num_bodies; j++) {
       if (is_colliding(app.bodies[i], app.bodies[j], contact)) {
-        collision_solve_by_impulse(contact);
+        //collision_solve_by_impulse(contact);
+        app.collisions.push_back(contact);
       }
     }
   }
@@ -439,6 +456,33 @@ void app_draw(application& app) {
       app.bodies[i]->position.y,
       app.bodies[i]->rotation,
       body_color
+    );
+  }
+
+  for (i = 0; i < app.collisions.size(); i++) {
+    graphics_draw_line(
+      app.gr,
+      app.collisions[i].start.x,
+      app.collisions[i].start.y,
+      app.collisions[i].end.x,
+      app.collisions[i].end.y,
+      0xFF0000FF
+    );
+
+    graphics_draw_fill_circle(
+      app.gr,
+      app.collisions[i].start.x,
+      app.collisions[i].start.y,
+      3.0f,
+      0xFFFF00FF
+    );
+
+    graphics_draw_fill_circle(
+      app.gr,
+      app.collisions[i].end.x,
+      app.collisions[i].end.y,
+      3.0f,
+      0xFFFF00FF
     );
   }
 
