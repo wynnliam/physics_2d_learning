@@ -343,12 +343,18 @@ void app_update(application& app) {
   // Handle collisions.
   //
 
+  for (i = 0; i < num_bodies; i++) {
+    app.bodies[i]->collides = false;
+  }
+
   app.collisions.clear();
   for (i = 0; i < num_bodies; i++) {
     for (j = i + 1; j < num_bodies; j++) {
       if (is_colliding(app.bodies[i], app.bodies[j], contact)) {
         //collision_solve_by_impulse(contact);
-        app.collisions.push_back(contact);
+        //app.collisions.push_back(contact);
+        app.bodies[i]->collides = true;
+        app.bodies[j]->collides = true;
       }
     }
   }
@@ -447,7 +453,7 @@ void app_draw(application& app) {
 
   num_bodies = app.bodies.size();
   for (i = 0; i < num_bodies; i++) {
-    body_color = 0xFFFFFFFF;
+    body_color = app.bodies[i]->collides ? 0xFF0000FF : 0xFFFFFFFF;
 
     draw_shape(
       app.gr,

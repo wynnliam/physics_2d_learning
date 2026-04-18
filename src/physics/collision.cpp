@@ -1,6 +1,7 @@
 // Liam Wynn, 4-9-2026, 2D Physics Engine
 
 #include "./collision.h"
+#include <limits>
 #include <variant>
 
 /* SHAPE COLLISION ROUTINES */
@@ -49,6 +50,14 @@ static bool poly_collision(
   body* body_b,
   collision_contact& contact
 ); 
+
+// Finds the minimum separation for two polygons
+static float find_min_separation(
+  const vec2def* a_verts,
+  const size_t a_vert_count,
+  const vec2def* b_verts,
+  const size_t b_vert_count
+);
 
 /* MAIN API IMPL */
 
@@ -242,7 +251,85 @@ bool poly_collision(
   body* body_b,
   collision_contact& contact
 ) {
-  return false;
+  float sep_ab;
+  float sep_ba;
+
+  sep_ab = find_min_separation(a_verts, a_vert_count, b_verts, b_vert_count);
+  if (sep_ab >= 0.0f) {
+    return false;
+  }
+
+  sep_ba = find_min_separation(b_verts, b_vert_count, a_verts, a_vert_count);
+  if (sep_ba >= 0.0f) {
+    return false;
+  }
+
+  // TODO: Contact!!!
+
+  return true;
+}
+
+float find_min_separation(
+  const vec2def* a_verts,
+  const size_t a_vert_count,
+  const vec2def* b_verts,
+  const size_t b_vert_count
+) {
+  vec2def edge_a;
+  vec2def edge_norm_a;
+  float proj_vb_ea;
+  float next_separation;
+  float separation;
+  size_t va;
+  size_t va1;
+  vec2def va_to_vb;
+  size_t vb;
+
+  //
+  // Defining "best" separation. For a given edge, consider its normal. If we
+  // drew it on paper, it would be an arrow pointing away from the edge and
+  // perpendicular to it. Note, we imply edges have a direction - indeed! The
+  // direction is from the origin to the destination, if we walked the edge in
+  // clockwise order.
+  //
+  // So the normal can be thought of as "the way the edge is facing" in a sense.
+  // If a point is in front of the edge, then there is a gap between that point
+  // and the edge - and hence separation. So oppositely, if a point is "behind"
+  // this edge, then there is penetration.
+  //
+  // The name of the game is thus: for each edge of A, we are looking for the
+  // least possible amount of separation. That is, suppose that vb is the vert
+  // of b that is the closest to an edge of a. How much separation is that?
+  // That's the value we want for that edge of a. Now for each of these
+  // separation values of the edges of a, which one is the "worst" meaning it
+  // provides the most separation between a and b? If this value is > 0, then
+  // that means we have a gap between a and b, and hence they are not colliding.
+  //
+
+  separation = std::numeric_limits<float>::lowest();
+
+  for (va = 0; va < a_vert_count; va++) {
+    // Get the edge from va to va1.
+    va1 = (va + 1) % a_vert_count;
+    edge_a = vec2_sub(a_verts[va1], a_verts[va]);
+    edge_norm_a = vec2_perp(edge_a);
+
+    // Calculate the minimum separation between the verts of b and this edge of
+    // a.
+    next_separation = std::numeric_limits<float>::max();
+    for (vb = 0; vb < b_vert_count; vb++) {
+      // Project vb onto edge_a.
+      va_to_vb = vec2_sub(b_verts[vb], a_verts[va]);
+      proj_vb_ea = vec2_dot(va_to_vb, edge_norm_a);
+
+      next_separation = std::min(next_separation, proj_vb_ea);
+    }
+
+    // Now decide the most separation amongst the separations of each edge.
+    separation = std::max(separation, next_separation);
+  }
+
+  return separation;
 }
 
 template<typename A, typename B>
