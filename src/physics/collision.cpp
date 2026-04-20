@@ -4,6 +4,16 @@
 #include <limits>
 #include <variant>
 
+// When  computing the min separation, we return this collection of data here.
+struct separation_info {
+  // The amount of separation.
+  float amount;
+  // The axis or edge for which the separation was found.
+  vec2def axis;
+  // The point of the polygon that penetrated to produce the separation.
+  vec2def point;
+};
+
 /* SHAPE COLLISION ROUTINES */
 
 static bool shape_collision(
@@ -52,11 +62,12 @@ static bool poly_collision(
 ); 
 
 // Finds the minimum separation for two polygons
-static float find_min_separation(
+static void find_min_separation(
   const vec2def* a_verts,
   const size_t a_vert_count,
   const vec2def* b_verts,
-  const size_t b_vert_count
+  const size_t b_vert_count,
+  separation_info& result
 );
 
 /* MAIN API IMPL */
@@ -251,35 +262,63 @@ bool poly_collision(
   body* body_b,
   collision_contact& contact
 ) {
-  float sep_ab;
-  float sep_ba;
+  separation_info sep_ab;
+  separation_info sep_ba;
 
-  sep_ab = find_min_separation(a_verts, a_vert_count, b_verts, b_vert_count);
-  if (sep_ab >= 0.0f) {
+  find_min_separation(a_verts, a_vert_count, b_verts, b_vert_count, sep_ab);
+  if (sep_ab.amount >= 0.0f) {
     return false;
   }
 
-  sep_ba = find_min_separation(b_verts, b_vert_count, a_verts, a_vert_count);
-  if (sep_ba >= 0.0f) {
+  find_min_separation(b_verts, b_vert_count, a_verts, a_vert_count, sep_ba);
+  if (sep_ba.amount >= 0.0f) {
     return false;
   }
 
-  // TODO: Contact!!!
+  //
+  // We have a collision, so populate the contact information. N.B. the ab and
+  // ba separations wont neccessarily be the same. Consider if the face of a
+  // hits the corner of b, or the corner of a hits the face of b. The rule is:
+  // face to corner is always what we want.
+  //
+
+  contact.a = body_a;
+  contact.b = body_b;
+
+  if (sep_ab.amount > sep_ba.amount) {
+    contact.depth = -sep_ab.amount;
+    contact.normal = vec2_perp(sep_ab.axis);
+    contact.start = sep_ab.point;
+    contact.end = vec2_add(
+      sep_ab.point,
+      vec2_scale(contact.normal, contact.depth)
+    );
+  } else {
+    contact.depth = -sep_ba.amount;
+    contact.normal = vec2_scale(vec2_perp(sep_ba.axis), -1.0f);
+    contact.start = vec2_sub(
+      sep_ba.point,
+      vec2_scale(contact.normal, contact.depth)
+    );
+    contact.end = sep_ba.point;
+  }
+
 
   return true;
 }
 
-float find_min_separation(
+void find_min_separation(
   const vec2def* a_verts,
   const size_t a_vert_count,
   const vec2def* b_verts,
-  const size_t b_vert_count
+  const size_t b_vert_count,
+  separation_info& result
 ) {
   vec2def edge_a;
   vec2def edge_norm_a;
   float proj_vb_ea;
+  size_t next_point;
   float next_separation;
-  float separation;
   size_t va;
   size_t va1;
   vec2def va_to_vb;
@@ -306,7 +345,7 @@ float find_min_separation(
   // that means we have a gap between a and b, and hence they are not colliding.
   //
 
-  separation = std::numeric_limits<float>::lowest();
+  result.amount = std::numeric_limits<float>::lowest();
 
   for (va = 0; va < a_vert_count; va++) {
     // Get the edge from va to va1.
@@ -322,14 +361,19 @@ float find_min_separation(
       va_to_vb = vec2_sub(b_verts[vb], a_verts[va]);
       proj_vb_ea = vec2_dot(va_to_vb, edge_norm_a);
 
-      next_separation = std::min(next_separation, proj_vb_ea);
+      if (proj_vb_ea < next_separation) {
+        next_separation = proj_vb_ea;
+        next_point = vb;
+      }
     }
 
     // Now decide the most separation amongst the separations of each edge.
-    separation = std::max(separation, next_separation);
+    if (next_separation > result.amount) {
+      result.amount = next_separation;
+      result.axis = edge_a;
+      result.point = b_verts[next_point];
+    }
   }
-
-  return separation;
 }
 
 template<typename A, typename B>

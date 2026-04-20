@@ -66,7 +66,7 @@ void app_setup(application& app) {
     1.0f,
     1.0f
   );
-  app.bodies[0]->angular_velocity = 0.4f;
+  app.bodies[0]->rotation = 1.3f;
 
   app.bodies[1] = new body;
   body_init(
@@ -77,7 +77,7 @@ void app_setup(application& app) {
     1.0f,
     1.0f
   );
-  app.bodies[1]->angular_velocity = 0.1f;
+  app.bodies[1]->rotation = 2.3f;
 
   app.push_force = vec2def(0.0f, 0.0f);
 
@@ -352,9 +352,9 @@ void app_update(application& app) {
     for (j = i + 1; j < num_bodies; j++) {
       if (is_colliding(app.bodies[i], app.bodies[j], contact)) {
         //collision_solve_by_impulse(contact);
-        //app.collisions.push_back(contact);
-        app.bodies[i]->collides = true;
-        app.bodies[j]->collides = true;
+        app.collisions.push_back(contact);
+        //app.bodies[i]->collides = true;
+        //app.bodies[j]->collides = true;
       }
     }
   }
