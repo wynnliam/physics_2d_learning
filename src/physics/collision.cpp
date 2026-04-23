@@ -119,20 +119,30 @@ void collision_solve_by_impulse(collision_contact& contact) {
   body* a;
   body* b;
   float e;
+  float f;
   vec2def impulse;
-  vec2def impulse_dir;
-  float impulse_mag;
-  float impulse_mag_denom;
+  vec2def impulse_norm;
+  vec2def impulse_norm_dir;
+  vec2def impulse_tang;
+  vec2def impulse_tang_dir;
+  float impulse_norm_mag;
+  float impulse_norm_mag_denom;
+  float impulse_tang_mag;
+  float impulse_tang_mag_denom;
   vec2def omega_cross_ra;
   vec2def omega_cross_rb;
   vec2def ra;
   float ra_cross_norm;
+  float ra_cross_tang;
   vec2def rb;
   float rb_cross_norm;
+  float rb_cross_tang;
+  vec2def tangent;
   vec2def vel_relative;
   vec2def vala;
   vec2def vbla;
   float vrdn;
+  float vrdt;
 
   a = contact.a;
   b = contact.b;
@@ -152,11 +162,13 @@ void collision_solve_by_impulse(collision_contact& contact) {
   collision_solve_by_projection(contact);
 
   //
-  // Choose elasticity to apply. N.B. there are many different ways we could
-  // handle this. I suspect one method is to have have an e for both a and b.
+  // Choose elasticity and friction to apply. N.B. there are many different ways
+  // we could handle this. I suspect one method is to have have an e for both a
+  // and b.
   //
 
   e = std::min(a->restitution, b->restitution);
+  f = std::min(a->friction, b->friction);
 
   //
   // Compute the vector from the center of mass to the point of collision.
@@ -189,14 +201,7 @@ void collision_solve_by_impulse(collision_contact& contact) {
   vel_relative = vec2_sub(vala, vbla);
 
   //
-  // Now calculate the relative velocity along the normal. N.B. we do Velocity
-  // Relative Dot Normal.
-  //
-
-  vrdn = vec2_dot(vel_relative, contact.normal);
-
-  //
-  // Compute the impulse magnitude.
+  // Compute the impulse along the normal.
   //
 
   ra_cross_norm = vec2_cross(ra, contact.normal);
@@ -207,15 +212,43 @@ void collision_solve_by_impulse(collision_contact& contact) {
   rb_cross_norm *= rb_cross_norm;
   rb_cross_norm *= b->inv_inertia;
 
-  impulse_mag_denom = a->inv_mass + b->inv_mass + ra_cross_norm + rb_cross_norm;
-  impulse_mag = -(1 + e) * vrdn / impulse_mag_denom;
+  vrdn = vec2_dot(vel_relative, contact.normal);
+
+  impulse_norm_mag_denom =
+    a->inv_mass + b->inv_mass + ra_cross_norm + rb_cross_norm;
+  impulse_norm_mag = -(1 + e) * vrdn / impulse_norm_mag_denom;
+
+  impulse_norm_dir = contact.normal;
+  impulse_norm = vec2_scale(impulse_norm_dir, impulse_norm_mag);
+
+  //
+  // Compute the impulse along the tangent.
+  //
+
+  tangent = vec2_perp(contact.normal);
+
+  ra_cross_tang = vec2_cross(ra, tangent);
+  ra_cross_tang *= ra_cross_tang;
+  ra_cross_tang *= a->inv_inertia;
+
+  rb_cross_tang = vec2_cross(rb, tangent);
+  rb_cross_tang *= rb_cross_tang;
+  rb_cross_tang *= b->inv_inertia;
+
+  vrdt = vec2_dot(vel_relative, tangent);
+
+  impulse_tang_mag_denom =
+    a->inv_mass + b->inv_mass + ra_cross_tang + rb_cross_tang;
+  impulse_tang_mag = f * -(1 + e) * vrdt / impulse_tang_mag_denom;
+
+  impulse_tang_dir = tangent;
+  impulse_tang = vec2_scale(impulse_tang_dir, impulse_tang_mag);
 
   //
   // Now compute the impulse.
   //
 
-  impulse_dir = contact.normal;
-  impulse = vec2_scale(impulse_dir, impulse_mag);
+  impulse = vec2_add(impulse_norm, impulse_tang);
 
   //
   // Lastly, apply the impulses.

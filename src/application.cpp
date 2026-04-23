@@ -63,20 +63,25 @@ void app_setup(application& app) {
     app.gr.window_w / 2,
     app.gr.window_h - 50.0f,
     0.0f,
-    0.2f
+    0.2f,
+    0.5f
   );
 
-  box.width = 200.0f;
+  circle.radius = 200.0f;
+  shape_init(circle); 
+  /*box.width = 200.0f;
   box.height = 200.0f;
-  shape_init(box);
+  shape_init(box);*/
+
   app.bodies[1] = new body;
   body_init(
     *(app.bodies[1]),
-    box,
+    circle,
     app.gr.window_w / 2,
     app.gr.window_h / 2,
     0.0f,
-    0.5f
+    1.0f,
+    2.0f
   );
   app.bodies[1]->rotation = 1.4f;
 
@@ -182,11 +187,13 @@ void app_input(application& app) {
         //break;
 
         SDL_GetMouseState(&x, &y);
-        box_shape.width = 50;
+        c.radius = 50.0f;
+        shape_init(c);
+        /*box_shape.width = 50;
         box_shape.height = 50;
-        shape_init(box_shape);
+        shape_init(box_shape);*/
         b = new body;
-        body_init(*b, box_shape, x, y, 1.0f, 0.0f);
+        body_init(*b, c, x, y, 1.0f, 0.0f, 0.5f);
         app.bodies.push_back(b);
       }
 

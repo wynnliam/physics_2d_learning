@@ -8,7 +8,8 @@ void body_init(
   const float x,
   const float y,
   const float mass,
-  const float restitution
+  const float restitution,
+  const float friction
 ) {
   p.position = vec2def(x, y);
 
@@ -33,6 +34,7 @@ void body_init(
   }
 
   p.restitution = restitution;
+  p.friction = friction;
 
   body_clear_forces(p);
   body_clear_torque(p);

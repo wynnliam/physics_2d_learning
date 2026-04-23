@@ -37,7 +37,9 @@ struct body {
   float inertia;
   float inv_inertia;
 
+  // Coefficients used in collision.
   float restitution;
+  float friction;
 
   shapedef shape;
 };
@@ -48,7 +50,8 @@ void body_init(
   const float x,
   const float y,
   const float mass,
-  const float restitution
+  const float restitution,
+  const float friction
 );
 
 void body_add_force(body& p, const vec2def& force);
