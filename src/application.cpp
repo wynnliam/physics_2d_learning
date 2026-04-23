@@ -53,31 +53,32 @@ void app_setup(application& app) {
   //insert_chain_link(app.chain[3].links, 1);
   //insert_chain_link(app.chain[3].links, 2);
 
-  box.width = 200.0f;
-  box.height = 200.0f;
+  box.width = app.gr.window_w / 2.0f;
+  box.height = 50.0f;
   shape_init(box);
-
   app.bodies[0] = new body;
   body_init(
     *(app.bodies[0]),
     box,
     app.gr.window_w / 2,
-    app.gr.window_h / 2,
-    1.0f,
-    1.0f
+    app.gr.window_h - 50.0f,
+    0.0f,
+    0.2f
   );
-  app.bodies[0]->rotation = 1.3f;
 
+  box.width = 200.0f;
+  box.height = 200.0f;
+  shape_init(box);
   app.bodies[1] = new body;
   body_init(
     *(app.bodies[1]),
     box,
     app.gr.window_w / 2,
     app.gr.window_h / 2,
-    1.0f,
-    1.0f
+    0.0f,
+    0.5f
   );
-  app.bodies[1]->rotation = 2.3f;
+  app.bodies[1]->rotation = 1.4f;
 
   app.push_force = vec2def(0.0f, 0.0f);
 
@@ -95,6 +96,7 @@ bool app_is_running(application& app) {
 
 void app_input(application& app) {
   body* b;
+  boxdef box_shape;
   circledef c;
   SDL_Event event;
   vec2def impulse_dir;
@@ -155,11 +157,11 @@ void app_input(application& app) {
       }
 
       case SDL_MOUSEMOTION: {
-        app.mouse_cursor.x = event.motion.x;
+        /*app.mouse_cursor.x = event.motion.x;
         app.mouse_cursor.y = event.motion.y;
 
         app.bodies[0]->position.x = app.mouse_cursor.x;
-        app.bodies[0]->position.y = app.mouse_cursor.y;
+        app.bodies[0]->position.y = app.mouse_cursor.y;*/
 
         break;
       }
@@ -171,8 +173,6 @@ void app_input(application& app) {
         //  app.mouse_cursor.y = y;
         //}
 
-        //SDL_GetMouseState(&x, &y);
-
         //c.radius = 20.0f;
         //shape_init(c);
 
@@ -180,6 +180,14 @@ void app_input(application& app) {
         //body_init(*b, c, x, y, 20.0f, 0.2f);
         //app.bodies.push_back(b);
         //break;
+
+        SDL_GetMouseState(&x, &y);
+        box_shape.width = 50;
+        box_shape.height = 50;
+        shape_init(box_shape);
+        b = new body;
+        body_init(*b, box_shape, x, y, 1.0f, 0.0f);
+        app.bodies.push_back(b);
       }
 
       case SDL_MOUSEBUTTONUP: {
@@ -282,8 +290,8 @@ void app_update(application& app) {
     // Apply the weight force to each body.
     //
 
-    //force_weight = vec2_scale(gravity, app.bodies[i]->mass);
-    //body_add_force(*(app.bodies[i]), force_weight);
+    force_weight = vec2_scale(gravity, app.bodies[i]->mass);
+    body_add_force(*(app.bodies[i]), force_weight);
 
     //
     // Apply a wind force.
@@ -351,8 +359,8 @@ void app_update(application& app) {
   for (i = 0; i < num_bodies; i++) {
     for (j = i + 1; j < num_bodies; j++) {
       if (is_colliding(app.bodies[i], app.bodies[j], contact)) {
-        //collision_solve_by_impulse(contact);
-        app.collisions.push_back(contact);
+        collision_solve_by_impulse(contact);
+        //app.collisions.push_back(contact);
         //app.bodies[i]->collides = true;
         //app.bodies[j]->collides = true;
       }
@@ -365,7 +373,7 @@ void app_update(application& app) {
 
   // Define a bottom that isn't quite the bottom of the screen. I find on my
   // machine the bottom of the screen is not visible so bodies go missing.
-  bottom = app.gr.window_h * 0.9f;
+  /*bottom = app.gr.window_h * 0.9f;
 
   for (i = 0; i < num_bodies; i++) {
     // TODO: Need to define a way to actually calculate 4 vectors based on the
@@ -395,7 +403,7 @@ void app_update(application& app) {
       app.bodies[i]->position.y = bottom - next_radius;
       app.bodies[i]->velocity.y *= -0.9f;
     }
-  }
+  }*/
 }
 
 void app_draw(application& app) {

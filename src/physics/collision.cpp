@@ -122,14 +122,17 @@ void collision_solve_by_impulse(collision_contact& contact) {
   vec2def impulse;
   vec2def impulse_dir;
   float impulse_mag;
+  float impulse_mag_denom;
+  vec2def omega_cross_ra;
+  vec2def omega_cross_rb;
+  vec2def ra;
+  float ra_cross_norm;
+  vec2def rb;
+  float rb_cross_norm;
   vec2def vel_relative;
+  vec2def vala;
+  vec2def vbla;
   float vrdn;
-
-  //
-  // First, separate the two objects via the projection method.
-  //
-
-  collision_solve_by_projection(contact);
 
   a = contact.a;
   b = contact.b;
@@ -143,6 +146,12 @@ void collision_solve_by_impulse(collision_contact& contact) {
   }
 
   //
+  // First, separate the two objects via the projection method.
+  //
+
+  collision_solve_by_projection(contact);
+
+  //
   // Choose elasticity to apply. N.B. there are many different ways we could
   // handle this. I suspect one method is to have have an e for both a and b.
   //
@@ -150,10 +159,34 @@ void collision_solve_by_impulse(collision_contact& contact) {
   e = std::min(a->restitution, b->restitution);
 
   //
+  // Compute the vector from the center of mass to the point of collision.
+  //
+
+  ra = vec2_sub(contact.end, a->position);
+  rb = vec2_sub(contact.start, b->position);
+
+  //
+  // Compute the angular velocity crossed with r. N.B. this result is a
+  // simplificiation of promoting the angular velocity and the r vectors to 3D
+  // like so: omega = (0, 0, body->angular_vel), r1 = (rx, ry, 0). Then taking
+  // the cross product.
+  //
+
+  omega_cross_ra = vec2_scale(vec2def(-ra.y, ra.x), a->angular_velocity);
+  omega_cross_rb = vec2_scale(vec2def(-rb.y, rb.x), b->angular_velocity);
+
+  //
+  // Compute the sum of the linear *and* angular velocities for both bodies.
+  //
+
+  vala = vec2_add(a->velocity, omega_cross_ra);
+  vbla = vec2_add(b->velocity, omega_cross_rb);
+
+  //
   // Now compute the relative velocity of between a and b.
   //
 
-  vel_relative = vec2_sub(a->velocity, b->velocity);
+  vel_relative = vec2_sub(vala, vbla);
 
   //
   // Now calculate the relative velocity along the normal. N.B. we do Velocity
@@ -163,10 +196,24 @@ void collision_solve_by_impulse(collision_contact& contact) {
   vrdn = vec2_dot(vel_relative, contact.normal);
 
   //
+  // Compute the impulse magnitude.
+  //
+
+  ra_cross_norm = vec2_cross(ra, contact.normal);
+  ra_cross_norm *= ra_cross_norm;
+  ra_cross_norm *= a->inv_inertia;
+
+  rb_cross_norm = vec2_cross(rb, contact.normal);
+  rb_cross_norm *= rb_cross_norm;
+  rb_cross_norm *= b->inv_inertia;
+
+  impulse_mag_denom = a->inv_mass + b->inv_mass + ra_cross_norm + rb_cross_norm;
+  impulse_mag = -(1 + e) * vrdn / impulse_mag_denom;
+
+  //
   // Now compute the impulse.
   //
 
-  impulse_mag = -(1 + e) * vrdn / (a->inv_mass + b->inv_mass);
   impulse_dir = contact.normal;
   impulse = vec2_scale(impulse_dir, impulse_mag);
 
@@ -174,8 +221,8 @@ void collision_solve_by_impulse(collision_contact& contact) {
   // Lastly, apply the impulses.
   //
 
-  body_apply_impulse(*a, impulse);
-  body_apply_impulse(*b, vec2_scale(impulse, -1));
+  body_apply_impulse(*a, impulse, ra);
+  body_apply_impulse(*b, vec2_scale(impulse, -1), rb);
 }
 
 /* SHAPE COLLISION ROUTINE IMPL */

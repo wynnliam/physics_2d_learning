@@ -46,12 +46,21 @@ void body_add_torque(body& p, const float torque) {
   p.sum_torque += torque;
 }
 
-void body_apply_impulse(body& p, const vec2def impulse) {
+void body_apply_linear_impulse(body& p, const vec2def& impulse) {
   if (body_is_static(p)) {
     return;
   }
 
   p.velocity = vec2_add(p.velocity, vec2_scale(impulse, p.inv_mass));
+}
+
+void body_apply_impulse(body& p, const vec2def& impulse, const vec2def& r) {
+  if (body_is_static(p)) {
+    return;
+  }
+
+  p.velocity = vec2_add(p.velocity, vec2_scale(impulse, p.inv_mass));
+  p.angular_velocity += vec2_cross(r, impulse) * p.inv_inertia;
 }
 
 void body_update(body& p, const float delta_time) {
