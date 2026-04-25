@@ -25,7 +25,7 @@ void app_setup(application& app) {
   //app.spring_rest_length = 80;
 
   //app.bodies.resize(app.chain.size() + 2);
-  app.bodies.resize(2);
+  app.bodies.resize(4);
 
   //circle.radius = 4.0f;
   //shape_init(circle);
@@ -53,37 +53,60 @@ void app_setup(application& app) {
   //insert_chain_link(app.chain[3].links, 1);
   //insert_chain_link(app.chain[3].links, 2);
 
-  box.width = app.gr.window_w / 2.0f;
-  box.height = 50.0f;
+  box.width = 200.0f;
+  box.height = 200.0f;
   shape_init(box);
   app.bodies[0] = new body;
   body_init(
     *(app.bodies[0]),
     box,
     app.gr.window_w / 2,
-    app.gr.window_h - 50.0f,
+    app.gr.window_h / 2,
     0.0f,
-    0.2f,
-    0.5f
+    0.5f,
+    2.0f
   );
+  app.bodies[0]->rotation = 1.4f;
 
-  circle.radius = 200.0f;
-  shape_init(circle); 
-  /*box.width = 200.0f;
-  box.height = 200.0f;
-  shape_init(box);*/
-
+  box.width = app.gr.window_w - 50;
+  box.height = 50;
+  shape_init(box);
   app.bodies[1] = new body;
   body_init(
     *(app.bodies[1]),
-    circle,
+    box,
     app.gr.window_w / 2,
-    app.gr.window_h / 2,
+    app.gr.window_h - 50,
+    0.0f,
+    2.2f,
+    2.0f
+  );
+
+  box.width = 50;
+  box.height = app.gr.window_h - 100;
+  shape_init(box);
+
+  app.bodies[2] = new body;
+  body_init(
+    *(app.bodies[2]),
+    box,
+    50,
+    app.gr.window_h / 2 - 25,
     0.0f,
     1.0f,
     2.0f
   );
-  app.bodies[1]->rotation = 1.4f;
+
+  app.bodies[3] = new body;
+  body_init(
+    *(app.bodies[3]),
+    box,
+    app.gr.window_w - 50,
+    app.gr.window_h / 2 - 25,
+    0.0f,
+    1.0f,
+    2.0f
+  );
 
   app.push_force = vec2def(0.0f, 0.0f);
 
@@ -189,11 +212,11 @@ void app_input(application& app) {
         SDL_GetMouseState(&x, &y);
         c.radius = 50.0f;
         shape_init(c);
-        /*box_shape.width = 50;
+        box_shape.width = 50;
         box_shape.height = 50;
-        shape_init(box_shape);*/
+        shape_init(box_shape);
         b = new body;
-        body_init(*b, c, x, y, 1.0f, 0.0f, 0.5f);
+        body_init(*b, c, x, y, 1.0f, 1.0f, 0.5f);
         app.bodies.push_back(b);
       }
 

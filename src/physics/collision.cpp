@@ -1,6 +1,7 @@
 // Liam Wynn, 4-9-2026, 2D Physics Engine
 
 #include "./collision.h"
+#include <algorithm>
 #include <limits>
 #include <variant>
 
@@ -40,6 +41,54 @@ static bool shape_collision(
   collision_contact& contact
 );
 
+static bool shape_collision(
+  const boxdef& a,
+  const polydef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+);
+
+static bool shape_collision(
+  const polydef& a,
+  const boxdef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+);
+
+bool shape_collision(
+  const circledef& a,
+  const polydef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+);
+
+bool shape_collision(
+  const polydef& a,
+  const circledef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+);
+
+bool shape_collision(
+  const circledef& a,
+  const boxdef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+);
+
+bool shape_collision(
+  const boxdef& a,
+  const circledef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+);
+
 // Generic not-yet-impl routine.
 template<typename A, typename B>
 static bool shape_collision(
@@ -59,7 +108,7 @@ static bool poly_collision(
   const size_t b_vert_count,
   body* body_b,
   collision_contact& contact
-); 
+);
 
 // Finds the minimum separation for two polygons
 static void find_min_separation(
@@ -68,6 +117,15 @@ static void find_min_separation(
   const vec2def* b_verts,
   const size_t b_vert_count,
   separation_info& result
+);
+
+static bool poly_circle_collision(
+  const vec2def* poly_verts,
+  const size_t poly_vert_count,
+  body* poly_body,
+  const circledef& circle,
+  body* circle_body,
+  collision_contact& contact
 );
 
 /* MAIN API IMPL */
@@ -333,6 +391,121 @@ bool shape_collision(
   );
 }
 
+bool shape_collision(
+  const boxdef& a,
+  const polydef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+) {
+  return poly_collision(
+    a.world_verts,
+    4,
+    body_a,
+    b.world_vertices.data(),
+    b.world_vertices.size(),
+    body_b,
+    contact
+  );
+}
+
+bool shape_collision(
+  const polydef& a,
+  const boxdef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+) {
+  return poly_collision(
+    a.world_vertices.data(),
+    a.world_vertices.size(),
+    body_a,
+    b.world_verts,
+    4,
+    body_b,
+    contact
+  );
+}
+
+bool shape_collision(
+  const circledef& a,
+  const polydef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+) {
+  return poly_circle_collision(
+    b.world_vertices.data(),
+    b.world_vertices.size(),
+    body_b,
+    a,
+    body_a,
+    contact
+  );
+}
+
+bool shape_collision(
+  const polydef& a,
+  const circledef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+) {
+  return poly_circle_collision(
+    a.world_vertices.data(),
+    a.world_vertices.size(),
+    body_a,
+    b,
+    body_b,
+    contact
+  );
+}
+
+bool shape_collision(
+  const circledef& a,
+  const boxdef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+) {
+  return poly_circle_collision(
+    b.world_verts,
+    4,
+    body_b,
+    a,
+    body_a,
+    contact
+  );
+}
+
+bool shape_collision(
+  const boxdef& a,
+  const circledef& b,
+  body* body_a,
+  body* body_b,
+  collision_contact& contact
+) {
+  return poly_circle_collision(
+    a.world_verts,
+    4,
+    body_a,
+    b,
+    body_b,
+    contact
+  );
+}
+
+template<typename A, typename B>
+bool shape_collision(
+  const A&,
+  const B&,
+  body*,
+  body*,
+  collision_contact&
+) {
+  return false;
+}
+
 bool poly_collision(
   const vec2def* a_verts,
   const size_t a_vert_count,
@@ -456,13 +629,101 @@ void find_min_separation(
   }
 }
 
-template<typename A, typename B>
-bool shape_collision(
-  const A&,
-  const B&,
-  body*,
-  body*,
-  collision_contact&
+bool poly_circle_collision(
+  const vec2def* poly_verts,
+  const size_t poly_vert_count,
+  body* poly_body,
+  const circledef& circle,
+  body* circle_body,
+  collision_contact& contact
 ) {
+  float best_proj;
+  size_t best_v;
+  size_t best_v1;
+  vec2def circle_center;
+  vec2def closest_edge;
+  vec2def closest_point_on_edge;
+  float dist;
+  vec2def edge_origin_to_circle;
+  vec2def next_edge;
+  vec2def next_edge_norm;
+  float next_proj;
+  float t;
+  size_t v;
+  size_t v1;
+
+  circle_center = circle_body->position;
+  best_proj = std::numeric_limits<float>::lowest();
+
+  //
+  // First we need to find the edge with the most separation between it and the
+  // circle. Note that most is not just absolute distance from the edge. The
+  // normal of the edge points the direction of "positive". So the "most"
+  // separation is the most in the direction of the edge's normal.
+  //
+
+  for (v = 0; v < poly_vert_count; v++) {
+    v1 = (v + 1) % poly_vert_count;
+
+    next_edge = vec2_sub(poly_verts[v1], poly_verts[v]);
+    next_edge_norm = vec2_perp(next_edge);
+
+    edge_origin_to_circle = vec2_sub(circle_center, poly_verts[v]);
+    next_proj = vec2_dot(edge_origin_to_circle, next_edge_norm);
+
+    if (next_proj > best_proj) {
+      best_proj = next_proj;
+      best_v = v;
+      best_v1 = v1;
+    }
+  }
+
+  closest_edge = vec2_sub(poly_verts[best_v1], poly_verts[best_v]);
+  edge_origin_to_circle = vec2_sub(circle_center, poly_verts[best_v]);
+  
+  t = vec2_dot(edge_origin_to_circle, closest_edge);
+  t = t / vec2_dot(closest_edge, closest_edge);
+  t = std::clamp(t, 0.0f, 1.0f);
+
+  closest_point_on_edge = vec2_add(
+    poly_verts[best_v],
+    vec2_scale(closest_edge, t)
+  );
+
+  //
+  // The circle is inside the polygon, so return true.
+  //
+
+  if (best_proj < 0) {
+    contact.a = poly_body;
+    contact.b = circle_body;
+    contact.depth = circle.radius - best_proj;
+    contact.normal = vec2_perp(closest_edge);
+    contact.start = vec2_sub(
+      circle_center,
+      vec2_scale(contact.normal, circle.radius)
+    );
+    contact.end = vec2_add(
+      contact.start,
+      vec2_scale(contact.normal, contact.depth)
+    );
+    return true;
+  }
+
+  dist = vec2_mag_squared(vec2_sub(circle_center, closest_point_on_edge));
+
+  if (dist < (circle.radius * circle.radius)) {
+    contact.a = poly_body;
+    contact.b = circle_body;
+    contact.depth = circle.radius - sqrt(dist);
+    contact.normal = vec2_norm(vec2_sub(circle_center, closest_point_on_edge));
+    contact.start = vec2_sub(
+      circle_center,
+      vec2_scale(contact.normal, circle.radius)
+    );
+    contact.end = closest_point_on_edge;
+    return true;
+  }
+
   return false;
 }
