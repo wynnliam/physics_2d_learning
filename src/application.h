@@ -31,6 +31,8 @@ struct application {
 
   SDL_Rect fluid;
 
+  int shape_make_state;
+
   // chain.size() == bodies.size().
   //std::vector<chain_link> chain;
   //float spring_k;

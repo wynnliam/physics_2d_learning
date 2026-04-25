@@ -57,7 +57,6 @@ void draw_shape(
   const float angle,
   const uint32_t color
 ) {
-
   graphics_draw_polygon(
     gr,
     x,

@@ -16,6 +16,7 @@ static void insert_chain_link(
 void app_setup(application& app) {
   circledef circle;
   boxdef box;
+  polydef poly;
 
   app.running = graphics_open_window(app.gr);
   app.time_prev_frame = SDL_GetTicks();
@@ -52,6 +53,13 @@ void app_setup(application& app) {
   //insert_chain_link(app.chain[3].links, 0);
   //insert_chain_link(app.chain[3].links, 1);
   //insert_chain_link(app.chain[3].links, 2);
+  poly.local_vertices.push_back({24, -151});
+  poly.local_vertices.push_back({186, -90});
+  poly.local_vertices.push_back({232, 58});
+  poly.local_vertices.push_back({46, 222});
+  poly.local_vertices.push_back({-164, 84});
+  poly.local_vertices.push_back({-133, -59});
+  shape_init(poly);
 
   box.width = 200.0f;
   box.height = 200.0f;
@@ -59,12 +67,12 @@ void app_setup(application& app) {
   app.bodies[0] = new body;
   body_init(
     *(app.bodies[0]),
-    box,
+    poly,
     app.gr.window_w / 2,
     app.gr.window_h / 2,
     0.0f,
     0.5f,
-    2.0f
+    7.0f
   );
   app.bodies[0]->rotation = 1.4f;
 
@@ -116,6 +124,8 @@ void app_setup(application& app) {
   app.fluid.h = app.gr.window_h / 2;
 
   app.left_mouse_button_down = false;
+
+  app.shape_make_state = 0;
 }
 
 bool app_is_running(application& app) {
@@ -130,6 +140,7 @@ void app_input(application& app) {
   vec2def impulse_dir;
   //float impulse_mag;
   vec2def mouse_to_p0;
+  polydef poly;
   int x;
   int y;
 
@@ -210,14 +221,35 @@ void app_input(application& app) {
         //break;
 
         SDL_GetMouseState(&x, &y);
+
         c.radius = 50.0f;
         shape_init(c);
+
         box_shape.width = 50;
         box_shape.height = 50;
         shape_init(box_shape);
+
+        poly.local_vertices.push_back({6, -38});
+        poly.local_vertices.push_back({47, -23});
+        poly.local_vertices.push_back({58, 15});
+        poly.local_vertices.push_back({12, 56});
+        poly.local_vertices.push_back({-41, 21});
+        poly.local_vertices.push_back({-33, -15});
+        shape_init(poly);
+
         b = new body;
-        body_init(*b, c, x, y, 1.0f, 1.0f, 0.5f);
+
+        if (app.shape_make_state == 0) {
+          body_init(*b, box_shape, x, y, 1.0f, 1.0f, 0.5f);
+        } else if (app.shape_make_state == 1) {
+          body_init(*b, c, x, y, 1.0f, 1.0f, 0.5f);
+        } else {
+          body_init(*b, poly, x, y, 1.0f, 0.0f, 0.0f);
+        }
+
         app.bodies.push_back(b);
+        // Disable the poly
+        app.shape_make_state = (app.shape_make_state + 1) % 2;
       }
 
       case SDL_MOUSEBUTTONUP: {
@@ -390,7 +422,7 @@ void app_update(application& app) {
     for (j = i + 1; j < num_bodies; j++) {
       if (is_colliding(app.bodies[i], app.bodies[j], contact)) {
         collision_solve_by_impulse(contact);
-        //app.collisions.push_back(contact);
+        app.collisions.push_back(contact);
         //app.bodies[i]->collides = true;
         //app.bodies[j]->collides = true;
       }
