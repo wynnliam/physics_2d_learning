@@ -229,12 +229,11 @@ void app_input(application& app) {
         box_shape.height = 50;
         shape_init(box_shape);
 
-        poly.local_vertices.push_back({6, -38});
-        poly.local_vertices.push_back({47, -23});
-        poly.local_vertices.push_back({58, 15});
-        poly.local_vertices.push_back({12, 56});
-        poly.local_vertices.push_back({-41, 21});
-        poly.local_vertices.push_back({-33, -15});
+        poly.local_vertices.push_back({20, 60});
+        poly.local_vertices.push_back({-40, 20});
+        poly.local_vertices.push_back({-20, -60});
+        poly.local_vertices.push_back({20, -60});
+        poly.local_vertices.push_back({40, 20});
         shape_init(poly);
 
         b = new body;
@@ -249,7 +248,7 @@ void app_input(application& app) {
 
         app.bodies.push_back(b);
         // Disable the poly
-        app.shape_make_state = (app.shape_make_state + 1) % 2;
+        app.shape_make_state = (app.shape_make_state + 1) % 3;
       }
 
       case SDL_MOUSEBUTTONUP: {

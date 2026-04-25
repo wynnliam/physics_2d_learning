@@ -19,7 +19,7 @@ shape_type get_shape_type(const polydef& p) {
 }
 
 float get_moment_of_inertia(const polydef& p) {
-  return 3.0f;
+  return 5000.0f;
 }
 
 void transform_shape(polydef& p, const vec2def& pos, const float angle) {
