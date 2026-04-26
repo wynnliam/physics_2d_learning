@@ -137,6 +137,36 @@ void graphics_draw_line(
   lineColor(g.renderer, x0, y0, x1, y1, color);
 }
 
+void graphics_draw_texture(
+  graphics& g,
+  SDL_Texture* texture,
+  const int x,
+  const int y,
+  const int width,
+  const int height,
+  const float rotation
+) {
+  SDL_Rect rect;
+  float rot_deg;
+
+  rect.x = x - (width / 2);
+  rect.y = y - (height / 2);
+  rect.w = width;
+  rect.h = height;
+
+  rot_deg = rotation * 57.2958f;
+
+  SDL_RenderCopyEx(
+    g.renderer,
+    texture,
+    NULL,
+    &rect,
+    rot_deg,
+    NULL,
+    SDL_FLIP_NONE
+  );
+}
+
 void graphics_draw_frame(graphics& g) {
   SDL_RenderPresent(g.renderer);
 }

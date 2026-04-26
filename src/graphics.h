@@ -63,6 +63,16 @@ void graphics_draw_line(
   const uint32_t color
 );
 
+void graphics_draw_texture(
+  graphics& g,
+  SDL_Texture* texture,
+  const int x,
+  const int y,
+  const int width,
+  const int height,
+  const float rotation
+);
+
 void graphics_draw_frame(graphics& g);
 
 void graphics_close_window(graphics& g);

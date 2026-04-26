@@ -1,6 +1,8 @@
 // Liam Wynn, 3-24-2026, 2D Physics Engine
 
 #include "./body.h"
+// TODO: Should not be here!
+#include <SDL2/SDL_image.h>
 
 void body_init(
   body& p,
@@ -38,6 +40,21 @@ void body_init(
 
   body_clear_forces(p);
   body_clear_torque(p);
+
+  p.texture = NULL;
+}
+
+void body_set_texture(body& p, graphics& gr, const char* texture_path) {
+  SDL_Surface* surface;
+
+  surface = IMG_Load(texture_path);
+
+  if (surface == NULL) {
+    return;
+  }
+
+  p.texture = SDL_CreateTextureFromSurface(gr.renderer, surface);
+  SDL_FreeSurface(surface);
 }
 
 void body_add_force(body& p, const vec2def& force) {

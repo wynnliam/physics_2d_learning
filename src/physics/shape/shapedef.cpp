@@ -23,14 +23,15 @@ void shape_transform(shapedef& s, const vec2def& pos, const float angle) {
 void draw_shape(
   graphics& gr,
   const shapedef& s,
+  SDL_Texture* texture,
   const int x,
   const int y,
   const float angle,
   const uint32_t color
 ) {
   std::visit(
-    [&gr, x, y, angle, color](const auto& arg) { 
-      draw_shape(gr, arg, x, y, angle, color); 
+    [&gr, texture, x, y, angle, color](const auto& arg) { 
+      draw_shape(gr, arg, texture, x, y, angle, color); 
     },
     s
   );

@@ -26,10 +26,26 @@ void transform_shape(circledef& c, const vec2def& pos, const float angle) {
 void draw_shape(
   graphics& gr,
   const circledef& c,
+  SDL_Texture* texture,
   const int x,
   const int y,
   const float angle,
   const uint32_t color
 ) {
-  graphics_draw_circle(gr, x, y, c.radius, angle, color);
+  float diameter;
+
+  if (texture == NULL) {
+    graphics_draw_circle(gr, x, y, c.radius, angle, color);
+  } else {
+    diameter = c.radius * 2;
+    graphics_draw_texture(
+      gr,
+      texture,
+      x,
+      y,
+      diameter,
+      diameter,
+      angle
+    );
+  }
 }

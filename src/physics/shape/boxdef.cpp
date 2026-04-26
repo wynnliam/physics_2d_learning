@@ -52,17 +52,30 @@ void transform_shape(boxdef& b, const vec2def& pos, const float angle) {
 void draw_shape(
   graphics& gr,
   const boxdef& b,
+  SDL_Texture* texture,
   const int x,
   const int y,
   const float angle,
   const uint32_t color
 ) {
-  graphics_draw_polygon(
-    gr,
-    x,
-    y,
-    4,
-    b.world_verts,
-    color
-  );
+  if (texture == NULL) {
+    graphics_draw_polygon(
+      gr,
+      x,
+      y,
+      4,
+      b.world_verts,
+      color
+    );
+  } else {
+    graphics_draw_texture(
+      gr,
+      texture,
+      x,
+      y,
+      b.width,
+      b.height,
+      angle
+    );
+  }
 }

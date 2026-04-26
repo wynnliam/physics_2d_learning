@@ -10,6 +10,8 @@
 
 #include "./vec2def.h"
 #include "./shape/shapedef.h"
+// TODO: Should not be here.
+#include "../graphics.h"
 
 struct body {
   // TODO: Debug code!!!
@@ -42,6 +44,9 @@ struct body {
   float friction;
 
   shapedef shape;
+
+  // TODO: Should not be here.
+  SDL_Texture* texture;
 };
 
 void body_init(
@@ -53,6 +58,8 @@ void body_init(
   const float restitution,
   const float friction
 );
+
+void body_set_texture(body& p, graphics& gr, const char* texture_path);
 
 void body_add_force(body& p, const vec2def& force);
 

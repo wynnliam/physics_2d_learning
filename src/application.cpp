@@ -67,7 +67,8 @@ void app_setup(application& app) {
   app.bodies[0] = new body;
   body_init(
     *(app.bodies[0]),
-    poly,
+    //poly,
+    box,
     app.gr.window_w / 2,
     app.gr.window_h / 2,
     0.0f,
@@ -75,6 +76,7 @@ void app_setup(application& app) {
     7.0f
   );
   app.bodies[0]->rotation = 1.4f;
+  body_set_texture(*(app.bodies[0]), app.gr, "./assets/crate.png");
 
   box.width = app.gr.window_w - 50;
   box.height = 50;
@@ -242,8 +244,9 @@ void app_input(application& app) {
           body_init(*b, box_shape, x, y, 1.0f, 1.0f, 0.5f);
         } else if (app.shape_make_state == 1) {
           body_init(*b, c, x, y, 1.0f, 1.0f, 0.5f);
+          body_set_texture(*b, app.gr, "./assets/basketball.png");
         } else {
-          body_init(*b, poly, x, y, 1.0f, 0.0f, 0.0f);
+          body_init(*b, poly, x, y, 1.0f, 0.01f, 1.0f);
         }
 
         app.bodies.push_back(b);
@@ -527,6 +530,7 @@ void app_draw(application& app) {
     draw_shape(
       app.gr,
       app.bodies[i]->shape,
+      app.bodies[i]->texture,
       app.bodies[i]->position.x,
       app.bodies[i]->position.y,
       app.bodies[i]->rotation,

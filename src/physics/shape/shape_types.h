@@ -71,6 +71,7 @@ void transform_shape(polydef& p, const vec2def& pos, const float angle);
 void draw_shape(
   graphics& gr,
   const circledef& c,
+  SDL_Texture* tex,
   const int x,
   const int y,
   const float angle,
@@ -80,6 +81,7 @@ void draw_shape(
 void draw_shape(
   graphics& gr,
   const boxdef& b,
+  SDL_Texture* tex,
   const int x,
   const int y,
   const float angle,
@@ -89,6 +91,7 @@ void draw_shape(
 void draw_shape(
   graphics& gr,
   const polydef& p,
+  SDL_Texture* tex,
   const int x,
   const int y,
   const float angle,

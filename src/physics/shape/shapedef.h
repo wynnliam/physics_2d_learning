@@ -25,6 +25,7 @@ void shape_transform(shapedef& s, const vec2def& pos, const float angle);
 void draw_shape(
   graphics& gr,
   const shapedef& s,
+  SDL_Texture* tex,
   const int x,
   const int y,
   const float angle,
