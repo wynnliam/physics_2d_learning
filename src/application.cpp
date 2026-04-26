@@ -574,6 +574,7 @@ void app_destroy(application& app) {
 
   num_bodies = app.bodies.size();
   for (i = 0; i < num_bodies; i++) {
+    body_cleanup(*(app.bodies[i]));
     delete app.bodies[i];
   }
 

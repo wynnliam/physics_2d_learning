@@ -81,5 +81,7 @@ void body_clear_torque(body& p);
 
 bool body_is_static(const body& p);
 
+void body_cleanup(body& p);
+
 #endif
 

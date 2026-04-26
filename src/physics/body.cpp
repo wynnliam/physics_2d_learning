@@ -53,6 +53,11 @@ void body_set_texture(body& p, graphics& gr, const char* texture_path) {
     return;
   }
 
+  if (p.texture != NULL) {
+    SDL_DestroyTexture(p.texture);
+    p.texture = NULL;
+  }
+
   p.texture = SDL_CreateTextureFromSurface(gr.renderer, surface);
   SDL_FreeSurface(surface);
 }
@@ -155,4 +160,9 @@ void body_clear_torque(body& p) {
 bool body_is_static(const body& p) {
   const float epsilon = 0.005;
   return fabs(p.inv_mass - 0.0f) < epsilon;
+}
+
+void body_cleanup(body& p) {
+  SDL_DestroyTexture(p.texture);
+  p.texture = NULL;
 }
