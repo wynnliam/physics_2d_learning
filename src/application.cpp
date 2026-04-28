@@ -17,6 +17,7 @@ void app_setup(application& app) {
   circledef circle;
   boxdef box;
   polydef poly;
+  body* temp_body;
 
   app.running = graphics_open_window(app.gr);
   app.time_prev_frame = SDL_GetTicks();
@@ -25,8 +26,7 @@ void app_setup(application& app) {
   //app.spring_k = 300.0f;
   //app.spring_rest_length = 80;
 
-  //app.bodies.resize(app.chain.size() + 2);
-  app.bodies.resize(4);
+  world_init(app.w, 10.0f);
 
   //circle.radius = 4.0f;
   //shape_init(circle);
@@ -64,9 +64,10 @@ void app_setup(application& app) {
   box.width = 200.0f;
   box.height = 200.0f;
   shape_init(box);
-  app.bodies[0] = new body;
+
+  temp_body = new body;
   body_init(
-    *(app.bodies[0]),
+    *temp_body,
     //poly,
     box,
     app.gr.window_w / 2,
@@ -75,15 +76,17 @@ void app_setup(application& app) {
     0.5f,
     7.0f
   );
-  app.bodies[0]->rotation = 1.4f;
-  body_set_texture(*(app.bodies[0]), app.gr, "./assets/crate.png");
+  temp_body->rotation = 1.4f;
+  body_set_texture(*temp_body, app.gr, "./assets/crate.png");
+  world_add_body(app.w, temp_body);
 
   box.width = app.gr.window_w - 50;
   box.height = 50;
   shape_init(box);
-  app.bodies[1] = new body;
+
+  temp_body = new body;
   body_init(
-    *(app.bodies[1]),
+    *temp_body,
     box,
     app.gr.window_w / 2,
     app.gr.window_h - 50,
@@ -91,14 +94,15 @@ void app_setup(application& app) {
     2.2f,
     2.0f
   );
+  world_add_body(app.w, temp_body);
 
   box.width = 50;
   box.height = app.gr.window_h - 100;
   shape_init(box);
 
-  app.bodies[2] = new body;
+  temp_body = new body;
   body_init(
-    *(app.bodies[2]),
+    *temp_body,
     box,
     50,
     app.gr.window_h / 2 - 25,
@@ -106,10 +110,11 @@ void app_setup(application& app) {
     1.0f,
     2.0f
   );
+  world_add_body(app.w, temp_body);
 
-  app.bodies[3] = new body;
+  temp_body = new body;
   body_init(
-    *(app.bodies[3]),
+    *temp_body,
     box,
     app.gr.window_w - 50,
     app.gr.window_h / 2 - 25,
@@ -117,6 +122,7 @@ void app_setup(application& app) {
     1.0f,
     2.0f
   );
+  world_add_body(app.w, temp_body);
 
   app.push_force = vec2def(0.0f, 0.0f);
 
@@ -249,8 +255,7 @@ void app_input(application& app) {
           body_init(*b, poly, x, y, 1.0f, 0.01f, 1.0f);
         }
 
-        app.bodies.push_back(b);
-        // Disable the poly
+        world_add_body(app.w, b);
         app.shape_make_state = (app.shape_make_state + 1) % 3;
       }
 
@@ -280,7 +285,6 @@ void app_update(application& app) {
   vec2def attraction;
   float bottom;
   float bound;
-  collision_contact contact;
   float delta_time;
   vec2def force_drag;
   vec2def force_friction;
@@ -322,16 +326,18 @@ void app_update(application& app) {
   }
 
   app.time_prev_frame = SDL_GetTicks();
-  num_bodies = app.bodies.size();
+  //num_bodies = app.bodies.size();
 
   gravity = vec2def(0.0f, 9.81 * PIXELS_PER_METERS);
   force_wind = vec2def(20.0f * PIXELS_PER_METERS, 0.0f);
+
+  world_update(app.w, delta_time);
 
   //
   // Apply each force to the bodies.
   //
 
-  for (i = 0; i < num_bodies; i++) {
+  /*for (i = 0; i < num_bodies; i++) {
 
     //
     // Apply the push force.
@@ -397,75 +403,30 @@ void app_update(application& app) {
     //  force_drag = generate_drag_force(*(app.bodies[i]), 0.01f);
     //  body_add_force(*(app.bodies[i]), force_drag);
     //}
-  }
+  }*/
 
   //body_add_torque(*(app.bodies[0]), 2000.0f);
   //body_add_torque(*(app.bodies[1]), 200.0f);
 
   //
-  // Now that we've our forces, perform the integration step to calculate the
-  // position of each body.
-  //
-
-  for (i = 0; i < num_bodies; i++) {
-    body_update(*(app.bodies[i]), delta_time);
-  }
-
-  //
   // Handle collisions.
   //
 
-  for (i = 0; i < num_bodies; i++) {
+  world_check_collisions(app.w);
+
+  /*for (i = 0; i < num_bodies; i++) {
     app.bodies[i]->collides = false;
   }
 
-  app.collisions.clear();
+  //app.collisions.clear();
   for (i = 0; i < num_bodies; i++) {
     for (j = i + 1; j < num_bodies; j++) {
       if (is_colliding(app.bodies[i], app.bodies[j], contact)) {
         collision_solve_by_impulse(contact);
-        app.collisions.push_back(contact);
+        //app.collisions.push_back(contact);
         //app.bodies[i]->collides = true;
         //app.bodies[j]->collides = true;
       }
-    }
-  }
-
-  //
-  // Clamp the body's position to be inside the bounds of the screen.
-  //
-
-  // Define a bottom that isn't quite the bottom of the screen. I find on my
-  // machine the bottom of the screen is not visible so bodies go missing.
-  /*bottom = app.gr.window_h * 0.9f;
-
-  for (i = 0; i < num_bodies; i++) {
-    // TODO: Need to define a way to actually calculate 4 vectors based on the
-    // shape: top, bottom, left, right. Maybe an AABB around the shape?
-    next_radius = 4;
-
-    bound = app.bodies[i]->position.x - next_radius;
-    if (bound <= 0) {
-      app.bodies[i]->position.x = next_radius;
-      app.bodies[i]->velocity.x *= -0.9f;
-    }
-
-    bound = app.bodies[i]->position.x + next_radius;
-    if (bound> app.gr.window_w) {
-      app.bodies[i]->position.x = app.gr.window_w - next_radius;
-      app.bodies[i]->velocity.x *= -0.9f;
-    }
-
-    bound = app.bodies[i]->position.y - next_radius;
-    if (bound <= 0) {
-      app.bodies[i]->position.y = next_radius;
-      app.bodies[i]->velocity.y *= -0.9f;
-    }
-
-    bound = app.bodies[i]->position.y + next_radius;
-    if (bound > bottom) {
-      app.bodies[i]->position.y = bottom - next_radius;
-      app.bodies[i]->velocity.y *= -0.9f;
     }
   }*/
 }
@@ -523,22 +484,22 @@ void app_draw(application& app) {
   //  }
   //}
 
-  num_bodies = app.bodies.size();
+  num_bodies = app.w.bodies.size();
   for (i = 0; i < num_bodies; i++) {
-    body_color = app.bodies[i]->collides ? 0xFF0000FF : 0xFFFFFFFF;
+    body_color = app.w.bodies[i]->collides ? 0xFF0000FF : 0xFFFFFFFF;
 
     draw_shape(
       app.gr,
-      app.bodies[i]->shape,
-      app.bodies[i]->texture,
-      app.bodies[i]->position.x,
-      app.bodies[i]->position.y,
-      app.bodies[i]->rotation,
+      app.w.bodies[i]->shape,
+      app.w.bodies[i]->texture,
+      app.w.bodies[i]->position.x,
+      app.w.bodies[i]->position.y,
+      app.w.bodies[i]->rotation,
       body_color
     );
   }
 
-  for (i = 0; i < app.collisions.size(); i++) {
+  /*for (i = 0; i < app.collisions.size(); i++) {
     graphics_draw_line(
       app.gr,
       app.collisions[i].start.x,
@@ -563,7 +524,7 @@ void app_draw(application& app) {
       3.0f,
       0xFFFF00FF
     );
-  }
+  }*/
 
   graphics_draw_frame(app.gr);
 }
@@ -572,11 +533,12 @@ void app_destroy(application& app) {
   size_t i;
   size_t num_bodies;
 
-  num_bodies = app.bodies.size();
+  world_cleanup(app.w);
+  /*num_bodies = app.bodies.size();
   for (i = 0; i < num_bodies; i++) {
     body_cleanup(*(app.bodies[i]));
     delete app.bodies[i];
-  }
+  }*/
 
   graphics_close_window(app.gr);
 }
