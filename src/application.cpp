@@ -18,6 +18,7 @@ void app_setup(application& app) {
   boxdef box;
   polydef poly;
   body* temp_body;
+  vec2def force_wind;
 
   app.running = graphics_open_window(app.gr);
   app.time_prev_frame = SDL_GetTicks();
@@ -26,7 +27,23 @@ void app_setup(application& app) {
   //app.spring_k = 300.0f;
   //app.spring_rest_length = 80;
 
-  world_init(app.w, 10.0f);
+  world_init(
+    app.w,
+    // Gravity
+    10.0f,
+    // Drag
+    0.01f,
+    // Friction
+    5.0f * PIXELS_PER_METERS
+  );
+
+  //
+  // Some example forces and torques we can supply the world.
+  //
+
+  force_wind = vec2def(20.0f * PIXELS_PER_METERS, 0.0f);
+  world_add_force(app.w, force_wind);
+  world_add_torque(app.w, 2000.0f);
 
   //circle.radius = 4.0f;
   //shape_init(circle);
@@ -534,11 +551,6 @@ void app_destroy(application& app) {
   size_t num_bodies;
 
   world_cleanup(app.w);
-  /*num_bodies = app.bodies.size();
-  for (i = 0; i < num_bodies; i++) {
-    body_cleanup(*(app.bodies[i]));
-    delete app.bodies[i];
-  }*/
 
   graphics_close_window(app.gr);
 }

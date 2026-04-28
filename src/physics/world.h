@@ -3,6 +3,8 @@
 /*
   Defines a container for all physics objects. It's primary purpose is to
   abstract and contain all physics stuff into a single place.
+
+  TODO: Somehow a means to apply forces, torques, etc. to specific bodies.
 */
 
 #ifndef WORLD
@@ -17,9 +19,16 @@ struct world {
   std::vector<vec2def> forces;
   std::vector<float> torques;
   float gravity;
+  float drag;
+  float friction;
 };
 
-void world_init(world& w, const float gravity);
+void world_init(
+  world& w,
+  const float gravity,
+  const float drag,
+  const float friction
+);
 
 void world_add_body(world& w, body* b);
 
