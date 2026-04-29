@@ -171,6 +171,9 @@ void collision_solve_by_projection(collision_contact& contact) {
     contact.b->position,
     vec2_scale(contact.normal, delta_b)
   );
+
+  shape_transform(contact.a->shape, contact.a->position, contact.a->rotation);
+  shape_transform(contact.b->shape, contact.b->position, contact.b->rotation);
 }
 
 void collision_solve_by_impulse(collision_contact& contact) {

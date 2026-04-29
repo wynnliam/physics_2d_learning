@@ -32,18 +32,18 @@ void app_setup(application& app) {
     // Gravity
     10.0f,
     // Drag
-    0.01f,
+    0.00f,
     // Friction
-    5.0f * PIXELS_PER_METERS
+    0.0f * PIXELS_PER_METERS
   );
 
   //
   // Some example forces and torques we can supply the world.
   //
 
-  force_wind = vec2def(20.0f * PIXELS_PER_METERS, 0.0f);
-  world_add_force(app.w, force_wind);
-  world_add_torque(app.w, 2000.0f);
+  //force_wind = vec2def(20.0f * PIXELS_PER_METERS, 0.0f);
+  //world_add_force(app.w, force_wind);
+  //world_add_torque(app.w, 2000.0f);
 
   //circle.radius = 4.0f;
   //shape_init(circle);
@@ -503,7 +503,8 @@ void app_draw(application& app) {
 
   num_bodies = app.w.bodies.size();
   for (i = 0; i < num_bodies; i++) {
-    body_color = app.w.bodies[i]->collides ? 0xFF0000FF : 0xFFFFFFFF;
+    //body_color = app.w.bodies[i]->collides ? 0xFF0000FF : 0xFFFFFFFF;
+    body_color = 0xFFFFFFFF;
 
     draw_shape(
       app.gr,
