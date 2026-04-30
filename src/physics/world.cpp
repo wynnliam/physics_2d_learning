@@ -98,6 +98,14 @@ void world_update(world& w, const float delta_time) {
   for (i = 0; i < num_bodies; i++) {
     body_update(*(w.bodies[i]), delta_time);
   }
+
+  //
+  // Handle collisions.
+  //
+
+  for (i = 0; i < 100; i++) {
+    world_check_collisions(w);
+  }
 }
 
 void world_check_collisions(world& w) {

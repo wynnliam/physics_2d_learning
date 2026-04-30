@@ -34,7 +34,7 @@ void app_setup(application& app) {
     // Drag
     0.00f,
     // Friction
-    0.0f * PIXELS_PER_METERS
+    4.0f * PIXELS_PER_METERS
   );
 
   //
@@ -250,8 +250,8 @@ void app_input(application& app) {
         c.radius = 50.0f;
         shape_init(c);
 
-        box_shape.width = 50;
-        box_shape.height = 50;
+        box_shape.width = 100;
+        box_shape.height = 100;
         shape_init(box_shape);
 
         poly.local_vertices.push_back({20, 60});
@@ -263,14 +263,16 @@ void app_input(application& app) {
 
         b = new body;
 
-        if (app.shape_make_state == 0) {
-          body_init(*b, box_shape, x, y, 1.0f, 1.0f, 0.5f);
+        body_init(*b, box_shape, x, y, 20.0f, 0.0f, 0.5f);
+
+        /*if (app.shape_make_state == 0) {
+          body_init(*b, box_shape, x, y, 1.0f, 0.2f, 0.5f);
         } else if (app.shape_make_state == 1) {
           body_init(*b, c, x, y, 1.0f, 1.0f, 0.5f);
           body_set_texture(*b, app.gr, "./assets/basketball.png");
         } else {
           body_init(*b, poly, x, y, 1.0f, 0.01f, 1.0f);
-        }
+        }*/
 
         world_add_body(app.w, b);
         app.shape_make_state = (app.shape_make_state + 1) % 3;
@@ -424,12 +426,6 @@ void app_update(application& app) {
 
   //body_add_torque(*(app.bodies[0]), 2000.0f);
   //body_add_torque(*(app.bodies[1]), 200.0f);
-
-  //
-  // Handle collisions.
-  //
-
-  world_check_collisions(app.w);
 
   /*for (i = 0; i < num_bodies; i++) {
     app.bodies[i]->collides = false;
