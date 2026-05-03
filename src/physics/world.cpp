@@ -103,9 +103,7 @@ void world_update(world& w, const float delta_time) {
   // Handle collisions.
   //
 
-  for (i = 0; i < 100; i++) {
-    world_check_collisions(w);
-  }
+  world_check_collisions(w);
 }
 
 void world_check_collisions(world& w) {

@@ -164,12 +164,12 @@ void collision_solve_by_projection(collision_contact& contact) {
 
   contact.a->position = vec2_sub(
     contact.a->position,
-    vec2_scale(contact.normal, delta_a * 0.8)
+    vec2_scale(contact.normal, delta_a)
   );
 
   contact.b->position = vec2_add(
     contact.b->position,
-    vec2_scale(contact.normal, delta_b * 0.8)
+    vec2_scale(contact.normal, delta_b)
   );
 
   shape_transform(contact.a->shape, contact.a->position, contact.a->rotation);
