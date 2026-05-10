@@ -23,6 +23,8 @@ struct vecndef {
 
 void vecn_init(vecndef& v, const size_t n);
 
+void vecn_copy(vecndef& dest, const vecndef& src, const bool do_cleanup);
+
 void vecn_cleanup(vecndef& v);
 
 // dest += src

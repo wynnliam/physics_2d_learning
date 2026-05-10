@@ -8,6 +8,21 @@ void vecn_init(vecndef& v, const size_t n) {
   vecn_zero(v);
 }
 
+void vecn_copy(vecndef& dest, const vecndef& src, const bool do_cleanup) {
+  size_t i;
+
+  if (do_cleanup) {
+    vecn_cleanup(dest);
+  }
+
+  dest.n = src.n;
+  dest.data = new float[dest.n];
+
+  for (i = 0; i < dest.n; i++) {
+    dest.data[i] = src.data[i];
+  }
+}
+
 void vecn_cleanup(vecndef& v) {
   delete[] v.data;
   v.data = NULL;
