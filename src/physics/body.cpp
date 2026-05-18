@@ -162,6 +162,34 @@ bool body_is_static(const body& p) {
   return fabs(p.inv_mass - 0.0f) < epsilon;
 }
 
+vec2def body_local_space_to_world_space(const body& p, const vec2def& v) {
+  vec2def result;
+
+  result = vec2_rotate(v, p.rotation);
+  result = vec2_add(result, p.position);
+
+  return result;
+}
+
+vec2def body_world_space_to_local_space(const body& p, const vec2def& v) {
+  vec2def result;
+  float rot_cos;
+  float rot_sin;
+  float translated_x;
+  float translated_y;
+
+  translated_x = v.x - p.position.x;
+  translated_y = v.y - p.position.y;
+
+  rot_sin = sin(-p.rotation);
+  rot_cos = cos(-p.rotation);
+
+  result.x = rot_cos * translated_x - rot_sin * translated_y;
+  result.y = rot_cos * translated_y + rot_sin * translated_x;
+
+  return result;
+}
+
 void body_cleanup(body& p) {
   SDL_DestroyTexture(p.texture);
   p.texture = NULL;

@@ -30,6 +30,10 @@ void world_add_body(world& w, body* b) {
   w.bodies.push_back(b);
 }
 
+void world_add_constraint(world& w, constraint* c) {
+  w.constraints.push_back(c);
+}
+
 void world_add_force(world& w, const vec2def& force) {
   w.forces.push_back(force);
 }

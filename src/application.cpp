@@ -8,149 +8,79 @@
 
 using namespace std;
 
-static void insert_chain_link(
-  vector<size_t>& chain,
-  const size_t to
+/*
+struct constraint {
+  constraint_type type;
+  body* a;
+  body* b;
+  vec2def a_point;
+  vec2def b_point;
+  matrix jacobian;
+};
+
+void constraint_init_joint(
+  constraint& c,
+  body* a,
+  body* b,
+  const vec2def anchor_point
 );
+*/
 
 void app_setup(application& app) {
+  body* a;
+  body* b;
   circledef circle;
-  boxdef box;
-  polydef poly;
-  body* temp_body;
-  vec2def force_wind;
+  constraint* constr_ab;
 
   app.running = graphics_open_window(app.gr);
   app.time_prev_frame = SDL_GetTicks();
-
-  //app.chain.resize(4);
-  //app.spring_k = 300.0f;
-  //app.spring_rest_length = 80;
 
   world_init(
     app.w,
     // Gravity
     10.0f,
-    // Drag
+    // Drag TODO: Should be per-body
     0.00f,
-    // Friction
+    // Friction TODO: Should be per-body
     4.0f * PIXELS_PER_METERS
   );
 
-  //
-  // Some example forces and torques we can supply the world.
-  //
-
-  //force_wind = vec2def(20.0f * PIXELS_PER_METERS, 0.0f);
-  //world_add_force(app.w, force_wind);
-  //world_add_torque(app.w, 2000.0f);
-
-  //circle.radius = 4.0f;
-  //shape_init(circle);
-  //app.bodies[0] = new body;
-  //body_init(*(app.bodies[0]), circle, 50, 100, 2.0f);
-  //insert_chain_link(app.chain[0].links, 1);
-  //insert_chain_link(app.chain[0].links, 2);
-  //insert_chain_link(app.chain[0].links, 3);
-  //
-  //app.bodies[1] = new body;
-  //body_init(*(app.bodies[1]), circle, 100, 100, 2.0f);
-  //insert_chain_link(app.chain[1].links, 0);
-  //insert_chain_link(app.chain[1].links, 2);
-  //insert_chain_link(app.chain[1].links, 3);
-  //
-  //app.bodies[2] = new body;
-  //body_init(*(app.bodies[2]), circle, 50, 200, 2.0f);
-  //insert_chain_link(app.chain[2].links, 0);
-  //insert_chain_link(app.chain[2].links, 1);
-  //insert_chain_link(app.chain[2].links, 3);
-  //
-  //app.bodies[3] = new body;
-  //body_init(*(app.bodies[3]), circle, 100, 200, 2.0f);
-  //insert_chain_link(app.chain[3].links, 0);
-  //insert_chain_link(app.chain[3].links, 1);
-  //insert_chain_link(app.chain[3].links, 2);
-  poly.local_vertices.push_back({24, -151});
-  poly.local_vertices.push_back({186, -90});
-  poly.local_vertices.push_back({232, 58});
-  poly.local_vertices.push_back({46, 222});
-  poly.local_vertices.push_back({-164, 84});
-  poly.local_vertices.push_back({-133, -59});
-  shape_init(poly);
-
-  box.width = 200.0f;
-  box.height = 200.0f;
-  shape_init(box);
-
-  temp_body = new body;
+  circle.radius = 30.0f;
+  a = new body;
   body_init(
-    *temp_body,
-    //poly,
-    box,
+    *a,
+    circle,
     app.gr.window_w / 2,
     app.gr.window_h / 2,
     0.0f,
-    0.5f,
-    7.0f
-  );
-  temp_body->rotation = 1.4f;
-  body_set_texture(*temp_body, app.gr, "./assets/crate.png");
-  world_add_body(app.w, temp_body);
-
-  box.width = app.gr.window_w - 50;
-  box.height = 50;
-  shape_init(box);
-
-  temp_body = new body;
-  body_init(
-    *temp_body,
-    box,
-    app.gr.window_w / 2,
-    app.gr.window_h - 50,
     0.0f,
-    2.2f,
-    2.0f
+    0.0f
   );
-  world_add_body(app.w, temp_body);
 
-  box.width = 50;
-  box.height = app.gr.window_h - 100;
-  shape_init(box);
-
-  temp_body = new body;
+  circle.radius = 20.0f;
+  b = new body;
   body_init(
-    *temp_body,
-    box,
-    50,
-    app.gr.window_h / 2 - 25,
-    0.0f,
+    *b,
+    circle,
+    a->position.x - 100.0f,
+    a->position.y,
     1.0f,
-    2.0f
-  );
-  world_add_body(app.w, temp_body);
-
-  temp_body = new body;
-  body_init(
-    *temp_body,
-    box,
-    app.gr.window_w - 50,
-    app.gr.window_h / 2 - 25,
     0.0f,
-    1.0f,
-    2.0f
+    0.0f
   );
-  world_add_body(app.w, temp_body);
 
-  app.push_force = vec2def(0.0f, 0.0f);
+  world_add_body(app.w, a);
+  world_add_body(app.w, b);
 
-  app.fluid.x = 0;
-  app.fluid.y = app.gr.window_h / 2;
-  app.fluid.w = app.gr.window_w;
-  app.fluid.h = app.gr.window_h / 2;
+  constr_ab = new constraint;
+  constraint_init_joint(
+    *constr_ab,
+    a,
+    b,
+    a->position
+  );
 
-  app.left_mouse_button_down = false;
-
-  app.shape_make_state = 0;
+  world_add_constraint(app.w, constr_ab);
 }
 
 bool app_is_running(application& app) {
@@ -158,16 +88,7 @@ bool app_is_running(application& app) {
 }
 
 void app_input(application& app) {
-  body* b;
-  boxdef box_shape;
-  circledef c;
   SDL_Event event;
-  vec2def impulse_dir;
-  //float impulse_mag;
-  vec2def mouse_to_p0;
-  polydef poly;
-  int x;
-  int y;
 
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
@@ -181,119 +102,6 @@ void app_input(application& app) {
           app.running = false;
         }
 
-        if (event.key.keysym.sym == SDLK_UP) {
-          app.push_force.y = -50 * PIXELS_PER_METERS;
-        }
-
-        if (event.key.keysym.sym == SDLK_DOWN) {
-          app.push_force.y = 50 * PIXELS_PER_METERS;
-        }
-
-        if (event.key.keysym.sym == SDLK_RIGHT) {
-          app.push_force.x = 50 * PIXELS_PER_METERS;
-        }
-
-        if (event.key.keysym.sym == SDLK_LEFT) {
-          app.push_force.x = -50 * PIXELS_PER_METERS;
-        }
-
-        break;
-      }
-
-      case SDL_KEYUP: {
-        if (event.key.keysym.sym == SDLK_UP) {
-          app.push_force.y = 0;
-        }
-
-        if (event.key.keysym.sym == SDLK_DOWN) {
-          app.push_force.y = 0;
-        }
-
-        if (event.key.keysym.sym == SDLK_RIGHT) {
-          app.push_force.x = 0;
-        }
-
-        if (event.key.keysym.sym == SDLK_LEFT) {
-          app.push_force.x = 0;
-        }
-
-        break;
-      }
-
-      case SDL_MOUSEMOTION: {
-        /*app.mouse_cursor.x = event.motion.x;
-        app.mouse_cursor.y = event.motion.y;
-
-        app.bodies[0]->position.x = app.mouse_cursor.x;
-        app.bodies[0]->position.y = app.mouse_cursor.y;*/
-
-        break;
-      }
-
-      case SDL_MOUSEBUTTONDOWN: {
-        //if (event.button.button == SDL_BUTTON_LEFT) {
-        //  app.left_mouse_button_down = true;
-        //  app.mouse_cursor.x = x;
-        //  app.mouse_cursor.y = y;
-        //}
-
-        //c.radius = 20.0f;
-        //shape_init(c);
-
-        //b = new body;
-        //body_init(*b, c, x, y, 20.0f, 0.2f);
-        //app.bodies.push_back(b);
-        //break;
-
-        SDL_GetMouseState(&x, &y);
-
-        c.radius = 50.0f;
-        shape_init(c);
-
-        box_shape.width = 100;
-        box_shape.height = 100;
-        shape_init(box_shape);
-
-        poly.local_vertices.push_back({20, 60});
-        poly.local_vertices.push_back({-40, 20});
-        poly.local_vertices.push_back({-20, -60});
-        poly.local_vertices.push_back({20, -60});
-        poly.local_vertices.push_back({40, 20});
-        shape_init(poly);
-
-        b = new body;
-
-        body_init(*b, box_shape, x, y, 20.0f, 0.0f, 0.5f);
-
-        /*if (app.shape_make_state == 0) {
-          body_init(*b, box_shape, x, y, 1.0f, 0.2f, 0.5f);
-        } else if (app.shape_make_state == 1) {
-          body_init(*b, c, x, y, 1.0f, 1.0f, 0.5f);
-          body_set_texture(*b, app.gr, "./assets/basketball.png");
-        } else {
-          body_init(*b, poly, x, y, 1.0f, 0.01f, 1.0f);
-        }*/
-
-        world_add_body(app.w, b);
-        app.shape_make_state = (app.shape_make_state + 1) % 3;
-      }
-
-      case SDL_MOUSEBUTTONUP: {
-        //if (app.left_mouse_button_down) {
-        //  if (event.button.button == SDL_BUTTON_LEFT) {
-        //    app.left_mouse_button_down = false;
-
-        //    mouse_to_p0 = vec2_sub(
-        //      app.bodies[0]->position,
-        //      app.mouse_cursor
-        //    );
-        //    impulse_dir = vec2_norm(mouse_to_p0);
-        //    impulse_mag = vec2_magnitude(mouse_to_p0) * 5.0f;
-
-        //    app.bodies[0]->velocity = vec2_scale(impulse_dir, impulse_mag);
-        //  }
-        //}
-
         break;
       }
     }
@@ -301,23 +109,9 @@ void app_input(application& app) {
 }
 
 void app_update(application& app) {
-  vec2def attraction;
-  float bottom;
-  float bound;
   float delta_time;
-  vec2def force_drag;
-  vec2def force_friction;
-  vec2def force_spring;
-  vec2def force_weight;
-  vec2def force_wind;
   int frame_delta;
   vec2def gravity;
-  size_t i;
-  size_t j;
-  //size_t l;
-  float next_radius;
-  //size_t num_links;
-  size_t num_bodies;
   int time_to_wait;
 
   //
@@ -345,161 +139,20 @@ void app_update(application& app) {
   }
 
   app.time_prev_frame = SDL_GetTicks();
-  //num_bodies = app.bodies.size();
-
-  gravity = vec2def(0.0f, 9.81 * PIXELS_PER_METERS);
-  force_wind = vec2def(20.0f * PIXELS_PER_METERS, 0.0f);
 
   world_update(app.w, delta_time);
 
-  //
-  // Apply each force to the bodies.
-  //
-
-  /*for (i = 0; i < num_bodies; i++) {
-
-    //
-    // Apply the push force.
-    //
-
-    //body_add_force(*(app.bodies[i]), app.push_force);
-
-    //
-    // Apply friction.
-    //
-
-    //force_friction = generate_friction_force(
-    //  *(app.bodies[i]),
-    //  5.0f * PIXELS_PER_METERS
-    //);
-
-    //body_add_force(*(app.bodies[i]), force_friction);
-
-    //
-    // Apply the weight force to each body.
-    //
-
-    force_weight = vec2_scale(gravity, app.bodies[i]->mass);
-    body_add_force(*(app.bodies[i]), force_weight);
-
-    //
-    // Apply a wind force.
-    //
-
-    //body_add_force(*(app.bodies[i]), force_wind);
-
-    //
-    // Apply a drag force.
-    //
-
-    //force_drag = generate_drag_force(*(app.bodies[i]), 0.01f);
-    //body_add_force(*(app.bodies[i]), force_drag);
-
-    //
-    // Apply the spring chain force.
-    //
-
-    //num_links = app.chain[i].links.size();
-    //for (j = 0; j < num_links; j++) {
-    //  l = app.chain[i].links[j];
-
-    //  force_spring = generate_spring_force(
-    //    *(app.bodies[i]),
-    //    *(app.bodies[l]),
-    //    app.spring_rest_length,
-    //    app.spring_k
-    //  );
-
-    //  body_add_force(*(app.bodies[i]), force_spring);
-    //}
-
-    //
-    // Apply the drag force to each body if the body is inside the
-    // liquid.
-    //
-
-    //if (app.bodies[i]->position.y >= app.fluid.y) {
-    //  force_drag = generate_drag_force(*(app.bodies[i]), 0.01f);
-    //  body_add_force(*(app.bodies[i]), force_drag);
-    //}
-  }*/
-
-  //body_add_torque(*(app.bodies[0]), 2000.0f);
-  //body_add_torque(*(app.bodies[1]), 200.0f);
-
-  /*for (i = 0; i < num_bodies; i++) {
-    app.bodies[i]->collides = false;
-  }
-
-  //app.collisions.clear();
-  for (i = 0; i < num_bodies; i++) {
-    for (j = i + 1; j < num_bodies; j++) {
-      if (is_colliding(app.bodies[i], app.bodies[j], contact)) {
-        collision_solve_by_impulse(contact);
-        //app.collisions.push_back(contact);
-        //app.bodies[i]->collides = true;
-        //app.bodies[j]->collides = true;
-      }
-    }
-  }*/
 }
 
 void app_draw(application& app) {
   uint32_t body_color;
   size_t i;
-  //size_t j;
-  //size_t l;
   size_t num_bodies;
-  //size_t num_links;
 
   graphics_clear_screen(app.gr, 0xFF056263);
 
-  //if (app.left_mouse_button_down) {
-  //  graphics_draw_line(
-  //    app.gr,
-  //    app.bodies[0]->position.x,
-  //    app.bodies[0]->position.y,
-  //    app.mouse_cursor.x,
-  //    app.mouse_cursor.y,
-  //    0xFF0000FF
-  //  );
-  //}
-
-  //graphics_draw_fill_rect(
-  //  app.gr,
-  //  app.fluid.x + app.fluid.w / 2,
-  //  app.fluid.y + app.fluid.h / 2,
-  //  app.fluid.w,
-  //  app.fluid.h,
-  //  0xFF6E3713
-  //);
-
-  //
-  // Draw the spring lines.
-  //
-
-  //num_bodies = app.chain.size();
-
-  //for (i = 0; i < num_bodies; i++) {
-  //  num_links = app.chain[i].links.size();
-
-  //  for (j = 0; j < num_links; j++) {
-  //    l = app.chain[i].links[j];
-
-  //    graphics_draw_line(
-  //      app.gr,
-  //      app.bodies[i]->position.x,
-  //      app.bodies[i]->position.y,
-  //      app.bodies[l]->position.x,
-  //      app.bodies[l]->position.y,
-  //      0xFF0000FF
-  //    );
-  //  }
-  //}
-
   num_bodies = app.w.bodies.size();
   for (i = 0; i < num_bodies; i++) {
-    //body_color = app.w.bodies[i]->collides ? 0xFF0000FF : 0xFFFFFFFF;
     body_color = 0xFFFFFFFF;
 
     draw_shape(
@@ -513,53 +166,10 @@ void app_draw(application& app) {
     );
   }
 
-  /*for (i = 0; i < app.collisions.size(); i++) {
-    graphics_draw_line(
-      app.gr,
-      app.collisions[i].start.x,
-      app.collisions[i].start.y,
-      app.collisions[i].end.x,
-      app.collisions[i].end.y,
-      0xFF0000FF
-    );
-
-    graphics_draw_fill_circle(
-      app.gr,
-      app.collisions[i].start.x,
-      app.collisions[i].start.y,
-      3.0f,
-      0xFFFF00FF
-    );
-
-    graphics_draw_fill_circle(
-      app.gr,
-      app.collisions[i].end.x,
-      app.collisions[i].end.y,
-      3.0f,
-      0xFFFF00FF
-    );
-  }*/
-
   graphics_draw_frame(app.gr);
 }
 
 void app_destroy(application& app) {
-  size_t i;
-  size_t num_bodies;
-
   world_cleanup(app.w);
-
   graphics_close_window(app.gr);
-}
-
-/* UTILITY ROUTINES */
-void insert_chain_link(
-  vector<size_t>& chain,
-  const size_t to
-) {
-  auto f = std::find(chain.begin(), chain.end(), to);
-
-  if (f == chain.end()) {
-    chain.push_back(to);
-  }
 }

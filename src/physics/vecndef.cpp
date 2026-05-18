@@ -5,7 +5,6 @@
 void vecn_init(vecndef& v, const size_t n) {
   v.n = n;
   v.data = new float[v.n];
-  vecn_zero(v);
 }
 
 void vecn_copy(vecndef& dest, const vecndef& src, const bool do_cleanup) {

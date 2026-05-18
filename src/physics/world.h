@@ -11,11 +11,13 @@
 #define WORLD
 
 #include "./body.h"
+#include "./constraint.h"
 #include "./vec2def.h"
 #include <vector>
 
 struct world {
   std::vector<body*> bodies;
+  std::vector<constraint*> constraints;
   std::vector<vec2def> forces;
   std::vector<float> torques;
   float gravity;
@@ -31,6 +33,8 @@ void world_init(
 );
 
 void world_add_body(world& w, body* b);
+
+void world_add_constraint(world& w, constraint* c);
 
 void world_add_force(world& w, const vec2def& force);
 

@@ -81,6 +81,10 @@ void body_clear_torque(body& p);
 
 bool body_is_static(const body& p);
 
+vec2def body_local_space_to_world_space(const body& p, const vec2def& v);
+
+vec2def body_world_space_to_local_space(const body& p, const vec2def& v);
+
 void body_cleanup(body& p);
 
 #endif

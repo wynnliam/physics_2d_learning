@@ -4,14 +4,42 @@
 #define CONSTRAINT
 
 #include "./body.h"
+#include "./matrix.h"
+
+//
+// N.B. Historically we called the JOINT constraint DISTANCE. The principle is
+// the same for the most part: we cannot be more than a distance away from a
+// specific point.
+//
+
+enum class constraint_type {
+  JOINT,
+  PENETRATION
+};
 
 struct constraint {
+  constraint_type type;
   body* a;
   body* b;
-
-  //mat_mn get_inv_m();
-  //vec_n vec;
+  vec2def a_point;
+  vec2def b_point;
+  matrix jacobian;
 };
+
+void constraint_init_joint(
+  constraint& c,
+  body* a,
+  body* b,
+  const vec2def anchor_point
+);
+
+matrix constraint_get_inv_mat(const constraint& c);
+
+vecndef constraint_get_velocities(const constraint& c);
+
+//
+// Determines the constraint type and solves it accordingly.
+//
 
 void constraint_solve(constraint& c);
 

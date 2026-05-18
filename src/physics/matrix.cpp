@@ -61,18 +61,6 @@ void matrix_zero(matrix& mat) {
   }
 }
 
-/*
-struct matrix {
-  // Num rows
-  size_t m;
-  // Num cols
-  size_t n;
-
-  // Each vecn is N dimension. There will be M of these vecndefs.
-  vecndef* rows;
-};
-*/
-
 matrix matrix_transpose(const matrix& mat) {
   size_t i;
   size_t j;
