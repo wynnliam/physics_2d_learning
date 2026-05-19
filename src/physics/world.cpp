@@ -50,10 +50,12 @@ void world_update(world& w, const float delta_time) {
   size_t i;
   size_t j;
   size_t num_bodies;
+  size_t num_constraints;
   size_t num_forces;
   size_t num_torques;
 
   num_bodies = w.bodies.size();
+  num_constraints = w.constraints.size();
   num_forces = w.forces.size();
   num_torques = w.torques.size();
 
@@ -95,12 +97,28 @@ void world_update(world& w, const float delta_time) {
   }
 
   //
-  // Now that we've our forces, perform the integration step to calculate the
-  // position of each body.
+  // Now that we've our forces, perform integration on the forces to get our
+  // velocities.
   //
 
   for (i = 0; i < num_bodies; i++) {
-    body_update(*(w.bodies[i]), delta_time);
+    body_integrate_forces(*(w.bodies[i]), delta_time);
+  }
+
+  //
+  // Solve all constraints
+  //
+
+  for (i = 0; i < num_constraints; i++) {
+    constraint_solve(*(w.constraints[i]));
+  }
+
+  //
+  // Now update our positions using our velocities.
+  //
+
+  for (i = 0; i < num_bodies; i++) {
+    body_integrate_velocities(*(w.bodies[i]), delta_time);
   }
 
   //

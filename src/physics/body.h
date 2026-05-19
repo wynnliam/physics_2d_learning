@@ -69,11 +69,9 @@ void body_apply_linear_impulse(body& p, const vec2def& impulse);
 
 void body_apply_impulse(body& p, const vec2def& impulse, const vec2def& r);
 
-void body_update(body& p, const float delta_time);
+void body_integrate_forces(body& p, const float delta_time);
 
-void body_integrate_linear(body& p, const float delta_time);
-
-void body_integrate_angular(body& p, const float delta_time);
+void body_integrate_velocities(body& p, const float delta_time);
 
 void body_clear_forces(body& p);
 

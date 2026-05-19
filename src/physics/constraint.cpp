@@ -83,6 +83,16 @@ vecndef constraint_get_velocities(const constraint& c) {
 }
 
 void constraint_solve(constraint& c) {
+
+  //
+  // Steps to solve
+  // 1. Load the Jacobian
+  // 2. V = GetVelocities
+  // 3. invM = GetInverseMassMatrix
+  // 4. Compute lambda --> impulse to apply to objects A and B
+  // 5. Apply lambda impulse to A and B
+  //
+
   switch (c.type) {
     case constraint_type::JOINT: {
       solve_as_joint(c);

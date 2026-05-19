@@ -87,16 +87,10 @@ void body_apply_impulse(body& p, const vec2def& impulse, const vec2def& r) {
   p.angular_velocity += vec2_cross(r, impulse) * p.inv_inertia;
 }
 
-void body_update(body& p, const float delta_time) {
-  body_integrate_linear(p, delta_time);
-  body_integrate_angular(p, delta_time);
-  shape_transform(p.shape, p.position, p.rotation);
-}
-
-void body_integrate_linear(body& p, const float delta_time) {
+void body_integrate_forces(body& p, const float delta_time) {
   if (body_is_static(p)) {
     return;
-  }
+  } 
 
   //
   // First, calculate the final acceleration of the body for this frame. We
@@ -105,30 +99,8 @@ void body_integrate_linear(body& p, const float delta_time) {
   //
 
   p.acceleration = vec2_scale(p.sum_force, p.inv_mass);
-
-  //
-  // Perform two steps of Euler Integration to find the position. First, we
-  // integrate the acceleration to compute the velocity. Then, we integrate the
-  // velocity to find the position.
   //
 
-  p.velocity = vec2_add(vec2_scale(p.acceleration, delta_time), p.velocity);
-  p.position = vec2_add(vec2_scale(p.velocity, delta_time), p.position);
-
-  //
-  // After integrating we need to clear the forces since they only apply for
-  // this frame.
-  //
-
-  body_clear_forces(p);
-}
-
-void body_integrate_angular(body& p, const float delta_time) {
-  if (body_is_static(p)) {
-    return;
-  }
-
-  //
   // Compute the angular accelertaion using the formula a = I / t. N.B. this is
   // a simplification of the torque formula t = F * d * sin(B). F is the force,
   // d is the distance from the center of mass that the force hits, and B is
@@ -138,15 +110,42 @@ void body_integrate_angular(body& p, const float delta_time) {
   p.angular_acceleration = p.sum_torque * p.inv_inertia;
 
   //
+  // Now we perform a step of Euler Integration. We integrate the acceleration
+  // to find the the velocity.
+  //
+
+  p.velocity = vec2_add(vec2_scale(p.acceleration, delta_time), p.velocity);
+
+  //
   // Perform two steps of Euler Integration to find the rotation. First we
   // integrate the angular acceleration to find the velocity; and then we
   // integrate the angular velocity to find the rotation.
   //
 
   p.angular_velocity += p.angular_acceleration * delta_time;
+
+  //
+  // After integrating we need to clear the forces since they only apply for
+  // this frame.
+  //
+
+  body_clear_forces(p);
+  body_clear_torque(p);
+}
+
+void body_integrate_velocities(body& p, const float delta_time) {
+  if (body_is_static(p)) {
+    return;
+  }
+
+  p.position = vec2_add(vec2_scale(p.velocity, delta_time), p.position);
   p.rotation += p.angular_velocity * delta_time;
 
-  body_clear_torque(p);
+  //
+  // If the body has any verticies, then update them.
+  //
+
+  shape_transform(p.shape, p.position, p.rotation);
 }
 
 void body_clear_forces(body& p) {
