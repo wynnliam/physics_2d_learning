@@ -113,7 +113,64 @@ void constraint_solve(constraint& c) {
 /* CONSTRAINT SOLVE ROUTINES IMPL */
 
 void solve_as_joint(constraint& c) {
-  // TODO
+  matrix inv_m;
+  vec2def j1;
+  float j2;
+  vec2def j3;
+  float j4;
+  vec2def pa;
+  vec2def pa_minus_pb;
+  vec2def pb;
+  vec2def pb_minus_pa;
+  vec2def ra;
+  vec2def rb;
+  vecndef v;
+
+  //
+  // Compute where the anchor point is now in world space. Note that we need to
+  // see the same point in world space relative to both a and b. The constraint
+  // is solved when pa == pb.
+  //
+
+  pa = body_local_space_to_world_space(*(c.a), c.a_point);
+  pb = body_local_space_to_world_space(*(c.b), c.b_point);
+
+  //
+  // Load the jacobian. I will not explain why we use this formula, because I
+  // straight up forgot how we got it. We first compute some values that we
+  // reuse a lot here.
+  //
+
+  pa_minus_pb = vec2_sub(pa, pb);
+  ra = vec2_sub(pa, c.a->position);
+  pb_minus_pa = vec2_sub(pb, pa);
+  rb = vec2_sub(pb, c.b->position);
+
+  j1 = vec2_scale(pa_minus_pb, 2.0f);
+  j2 = 2.0f * vec2_cross(ra, pa_minus_pb);
+  j3 = vec2_scale(pb_minus_pa, 2.0f);
+  j4 = 2.0f * vec2_cross(rb, pb_minus_pa);
+
+  c.jacobian.rows[0].data[0] = j1.x;
+  c.jacobian.rows[0].data[1] = j1.y;
+  c.jacobian.rows[0].data[2] = j2;
+  c.jacobian.rows[0].data[3] = j3.x;
+  c.jacobian.rows[0].data[4] = j3.y;
+  c.jacobian.rows[0].data[5] = j4;
+
+  //
+  // Next we get the velocities vector and inverse mass matrix, which will then
+  // be used to calculate the impulses which we need to apply to a and b to
+  // solve the constraints.
+  //
+
+  v = constraint_get_velocities(c);
+  inv_m = constraint_get_inv_mat(c);
+
+  // ...
+
+  vecn_cleanup(v);
+  matrix_cleanup(inv_m);
 }
 
 void solve_as_penetration(constraint& c) {
