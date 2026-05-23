@@ -11,8 +11,12 @@ using namespace std;
 void app_setup(application& app) {
   body* a;
   body* b;
+  boxdef box;
   circledef circle;
   constraint* constr_ab;
+  size_t i;
+  float mass;
+  size_t num_bodies;
 
   app.running = graphics_open_window(app.gr);
   app.time_prev_frame = SDL_GetTicks();
@@ -20,7 +24,7 @@ void app_setup(application& app) {
   world_init(
     app.w,
     // Gravity
-    10.0f,
+    9.8f,
     // Drag TODO: Should be per-body
     0.00f,
     // Friction TODO: Should be per-body
@@ -28,42 +32,44 @@ void app_setup(application& app) {
     0.00f
   );
 
-  circle.radius = 30.0f;
-  a = new body;
-  body_init(
-    *a,
-    circle,
-    app.gr.window_w / 2,
-    app.gr.window_h / 2,
-    0.0f,
-    0.0f,
-    0.0f
-  );
-
   circle.radius = 20.0f;
-  b = new body;
-  body_init(
-    *b,
-    circle,
-    a->position.x - 100.0f,
-    a->position.y,
-    1.0f,
-    0.0f,
-    0.0f
-  );
+  box.width = 20.0f;
+  box.height = 20.0f;
+  num_bodies = 8;
 
-  world_add_body(app.w, a);
-  world_add_body(app.w, b);
+  shape_init(box);
 
-  constr_ab = new constraint;
-  constraint_init_joint(
-    *constr_ab,
-    a,
-    b,
-    a->position
-  );
+  for (i = 0; i < num_bodies; i++) {
+    mass = i == 0 ? 0.0f : 1.0f;
 
-  world_add_constraint(app.w, constr_ab);
+    a = new body;
+    body_init(
+      *a,
+      box,
+      (app.gr.window_w / 2) - (i * 25.0f),
+      100.0f,
+      mass,
+      0,
+      0
+    );
+
+    world_add_body(app.w, a);
+  }
+
+  for (i = 0; i < num_bodies - 1; i++) {
+    a = app.w.bodies[i];
+    b = app.w.bodies[i + 1];
+
+    constr_ab = new constraint;
+    constraint_init_joint(
+      *constr_ab,
+      a,
+      b,
+      a->position
+    );
+
+    world_add_constraint(app.w, constr_ab);
+  }
 }
 
 bool app_is_running(application& app) {

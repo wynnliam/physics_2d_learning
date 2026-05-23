@@ -20,6 +20,7 @@ void body_init(
   p.angular_acceleration = 0.0f;
 
   p.shape = shape;
+  shape_transform(p.shape, p.position, p.rotation);
 
   p.mass = mass;
   if (p.mass != 0.0f) {

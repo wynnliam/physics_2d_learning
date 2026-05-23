@@ -109,8 +109,10 @@ void world_update(world& w, const float delta_time) {
   // Solve all constraints
   //
 
-  for (i = 0; i < num_constraints; i++) {
-    constraint_solve(*(w.constraints[i]));
+  for (j = 0; j < 50; j++) {
+    for (i = 0; i < num_constraints; i++) {
+      constraint_solve(*(w.constraints[i]));
+    }
   }
 
   //
