@@ -315,8 +315,8 @@ void collision_solve_by_impulse(collision_contact& contact) {
   // Lastly, apply the impulses.
   //
 
-  body_apply_impulse(*a, impulse, ra);
-  body_apply_impulse(*b, vec2_scale(impulse, -1), rb);
+  body_apply_impulse_at_point(*a, impulse, ra);
+  body_apply_impulse_at_point(*b, vec2_scale(impulse, -1), rb);
 }
 
 /* SHAPE COLLISION ROUTINE IMPL */

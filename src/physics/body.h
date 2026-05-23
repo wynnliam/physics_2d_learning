@@ -65,9 +65,15 @@ void body_add_force(body& p, const vec2def& force);
 
 void body_add_torque(body& p, const float torque);
 
-void body_apply_linear_impulse(body& p, const vec2def& impulse);
+void body_apply_impulse_linear(body& p, const vec2def& impulse);
 
-void body_apply_impulse(body& p, const vec2def& impulse, const vec2def& r);
+void body_apply_impulse_angular(body& p, const float impulse);
+
+void body_apply_impulse_at_point(
+  body& p,
+  const vec2def& impulse,
+  const vec2def& r
+);
 
 void body_integrate_forces(body& p, const float delta_time);
 

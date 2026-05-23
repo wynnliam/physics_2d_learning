@@ -8,24 +8,6 @@
 
 using namespace std;
 
-/*
-struct constraint {
-  constraint_type type;
-  body* a;
-  body* b;
-  vec2def a_point;
-  vec2def b_point;
-  matrix jacobian;
-};
-
-void constraint_init_joint(
-  constraint& c,
-  body* a,
-  body* b,
-  const vec2def anchor_point
-);
-*/
-
 void app_setup(application& app) {
   body* a;
   body* b;
@@ -42,7 +24,8 @@ void app_setup(application& app) {
     // Drag TODO: Should be per-body
     0.00f,
     // Friction TODO: Should be per-body
-    4.0f * PIXELS_PER_METERS
+    //4.0f * PIXELS_PER_METERS
+    0.00f
   );
 
   circle.radius = 30.0f;

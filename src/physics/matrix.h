@@ -30,5 +30,8 @@ std::optional<matrix> matrix_mat_mul(const matrix& a, const matrix& b);
 
 std::optional<vecndef> matrix_vecn_mul(const matrix& mat, const vecndef& v);
 
+// Solves for x in Ax = b
+vecndef matrix_solve_gauss_seidel(const matrix& A, const vecndef& b);
+
 #endif
 

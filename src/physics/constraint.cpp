@@ -2,6 +2,8 @@
 
 #include "constraint.h"
 
+using namespace std;
+
 /* CONSTRAINT SOLVE ROUTINES */
 
 static void solve_as_joint(constraint& c);
@@ -113,11 +115,19 @@ void constraint_solve(constraint& c) {
 /* CONSTRAINT SOLVE ROUTINES IMPL */
 
 void solve_as_joint(constraint& c) {
+  vec2def impulse_linear_a;
+  vec2def impulse_linear_b;
+  vecndef impulses;
   matrix inv_m;
   vec2def j1;
   float j2;
   vec2def j3;
   float j4;
+  matrix jacobian_transposed;
+  vecndef lambda;
+  vecndef lambda_numerator;
+  matrix lambda_denominator;
+  matrix lambda_denominator1;
   vec2def pa;
   vec2def pa_minus_pb;
   vec2def pb;
@@ -151,6 +161,7 @@ void solve_as_joint(constraint& c) {
   j3 = vec2_scale(pb_minus_pa, 2.0f);
   j4 = 2.0f * vec2_cross(rb, pb_minus_pa);
 
+  matrix_zero(c.jacobian);
   c.jacobian.rows[0].data[0] = j1.x;
   c.jacobian.rows[0].data[1] = j1.y;
   c.jacobian.rows[0].data[2] = j2;
@@ -159,18 +170,63 @@ void solve_as_joint(constraint& c) {
   c.jacobian.rows[0].data[5] = j4;
 
   //
-  // Next we get the velocities vector and inverse mass matrix, which will then
-  // be used to calculate the impulses which we need to apply to a and b to
-  // solve the constraints.
+  // Next we get all of the items needed to compute the lambda. This includes:
+  // velocities vector, inverse mass matrix, and the transposed jacobian. These
+  // will then be used to calculate the impulses which we need to apply to a and
+  // b to solve the constraints.
   //
 
   v = constraint_get_velocities(c);
   inv_m = constraint_get_inv_mat(c);
+  jacobian_transposed = matrix_transpose(c.jacobian);
 
-  // ...
+  //
+  // Now we compute lambda. N.B. we should check that the optionals actually
+  // produce values. But I am being a lazy here.
+  //
 
+  lambda_numerator = matrix_vecn_mul(c.jacobian, v).value();
+  vecn_scale(lambda_numerator, -1.0f);
+  // TODO: Bias factor
+
+  lambda_denominator1 = matrix_mat_mul(c.jacobian, inv_m).value();
+  lambda_denominator = matrix_mat_mul(
+    lambda_denominator1,
+    jacobian_transposed
+  ).value();
+
+  lambda = matrix_solve_gauss_seidel(lambda_denominator, lambda_numerator);
+
+  //
+  // Compute the final impulses with direction + magnitude and apply to the
+  // bodies.
+  //
+
+  impulses = matrix_vecn_mul(jacobian_transposed, lambda).value();
+
+  impulse_linear_a.x = impulses.data[0];
+  impulse_linear_a.y = impulses.data[1];
+  body_apply_impulse_linear(*(c.a), impulse_linear_a);
+  body_apply_impulse_angular(*(c.a), impulses.data[2]);
+
+  impulse_linear_b.x = impulses.data[3];
+  impulse_linear_b.y = impulses.data[4];
+  body_apply_impulse_linear(*(c.b), impulse_linear_b);
+  body_apply_impulse_angular(*(c.b), impulses.data[5]);
+
+  //
+  // Clean up allocated vectors and matrices.
+  // TODO: Seems like a terrible use of space and allocation.
+  //
+
+  vecn_cleanup(impulses);
   vecn_cleanup(v);
   matrix_cleanup(inv_m);
+  matrix_cleanup(jacobian_transposed);
+  vecn_cleanup(lambda);
+  vecn_cleanup(lambda_numerator);
+  matrix_cleanup(lambda_denominator1);
+  matrix_cleanup(lambda_denominator);
 }
 
 void solve_as_penetration(constraint& c) {

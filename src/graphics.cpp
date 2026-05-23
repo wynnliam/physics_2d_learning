@@ -16,8 +16,11 @@ bool graphics_open_window(graphics& g) {
   }
 
   SDL_GetCurrentDisplayMode(0, &display_mode);
-  g.window_w = display_mode.w;
-  g.window_h = display_mode.h;
+  /*g.window_w = display_mode.w;
+  g.window_h = display_mode.h;*/
+
+  g.window_w = 800;
+  g.window_h = 600;
 
   g.window = SDL_CreateWindow(
     NULL,
@@ -25,7 +28,7 @@ bool graphics_open_window(graphics& g) {
     0,
     g.window_w,
     g.window_h,
-    SDL_WINDOW_BORDERLESS
+    0 //SDL_WINDOW_BORDERLESS
   );
 
   if (g.window == NULL) {

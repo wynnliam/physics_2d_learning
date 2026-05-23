@@ -80,7 +80,7 @@ matrix matrix_transpose(const matrix& mat) {
 
   for (i = 0; i < m; i++) {
     for (j = 0; j < n; j++) {
-      result.rows[n].data[m] = mat.rows[m].data[n];
+      result.rows[j].data[i] = mat.rows[i].data[j];
     }
   }
 
@@ -111,7 +111,7 @@ optional<matrix> matrix_mat_mul(const matrix& a, const matrix& b) {
 
   for (i = 0; i < num_rows; i++) {
     for (j = 0; j < num_cols; j++) {
-      result.rows[i].data[j] = vecn_dot(a.rows[i], b_transposed.rows[i]);
+      result.rows[i].data[j] = vecn_dot(a.rows[i], b_transposed.rows[j]);
     }
   }
 
@@ -138,6 +138,32 @@ optional<vecndef> matrix_vecn_mul(const matrix& mat, const vecndef& v) {
 
   for (i = 0; i < num_entries; i++) {
     result.data[i] = vecn_dot(mat.rows[i], v);
+  }
+
+  return result;
+}
+
+vecndef matrix_solve_gauss_seidel(const matrix& A, const vecndef& b) {
+  float adi;
+  float adx;
+  size_t i;
+  size_t n;
+  vecndef result;
+  size_t curr_iter;
+
+  n = b.n;
+
+  vecn_init(result, n);
+  vecn_zero(result);
+
+  for (curr_iter = 0; curr_iter < n; curr_iter++) {
+    for (i = 0; i < n; i++) {
+      adi = A.rows[i].data[i];
+      if (adi != 0.0f) {
+        adx = vecn_dot(A.rows[i], result);
+        result.data[i] += (b.data[i] - adx) / adi;
+      }
+    }
   }
 
   return result;
