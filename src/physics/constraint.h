@@ -24,6 +24,7 @@ struct constraint {
   vec2def a_point;
   vec2def b_point;
   matrix jacobian;
+  vecndef cached_lambda;
 };
 
 void constraint_init_joint(
@@ -37,11 +38,11 @@ matrix constraint_get_inv_mat(const constraint& c);
 
 vecndef constraint_get_velocities(const constraint& c);
 
-//
-// Determines the constraint type and solves it accordingly.
-//
+void constraint_presolve(constraint& c);
 
 void constraint_solve(constraint& c);
+
+void constraint_postsolve(constraint& c);
 
 #endif
 

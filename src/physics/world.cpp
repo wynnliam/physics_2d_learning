@@ -106,13 +106,21 @@ void world_update(world& w, const float delta_time) {
   }
 
   //
-  // Solve all constraints
+  // Solve all constraints. Apply warm starting
   //
 
-  for (j = 0; j < 50; j++) {
+  for (i = 0; i < num_constraints; i++) {
+    constraint_presolve(*(w.constraints[i]));
+  }
+
+  for (j = 0; j < 5; j++) {
     for (i = 0; i < num_constraints; i++) {
       constraint_solve(*(w.constraints[i]));
     }
+  }
+
+  for (i = 0; i < num_constraints; i++) {
+    constraint_postsolve(*(w.constraints[i]));
   }
 
   //

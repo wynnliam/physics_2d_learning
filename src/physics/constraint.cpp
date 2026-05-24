@@ -6,6 +6,8 @@ using namespace std;
 
 /* CONSTRAINT SOLVE ROUTINES */
 
+static void warm_start(constraint& c, const matrix& jt, const vecndef& l);
+
 static void solve_as_joint(constraint& c);
 
 static void solve_as_penetration(constraint& c);
@@ -27,6 +29,9 @@ void constraint_init_joint(
   c.b_point = body_world_space_to_local_space(*(c.b), anchor_point);
 
   matrix_init(c.jacobian, 1, 6);
+
+  vecn_init(c.cached_lambda, 1);
+  vecn_zero(c.cached_lambda);
 }
 
 matrix constraint_get_inv_mat(const constraint& c) {
@@ -84,57 +89,18 @@ vecndef constraint_get_velocities(const constraint& c) {
   return result;
 }
 
-void constraint_solve(constraint& c) {
-
-  //
-  // Steps to solve
-  // 1. Load the Jacobian
-  // 2. V = GetVelocities
-  // 3. invM = GetInverseMassMatrix
-  // 4. Compute lambda --> impulse to apply to objects A and B
-  // 5. Apply lambda impulse to A and B
-  //
-
-  switch (c.type) {
-    case constraint_type::JOINT: {
-      solve_as_joint(c);
-      break;
-    }
-
-    case constraint_type::PENETRATION: {
-      solve_as_penetration(c);
-      break;
-    }
-
-    default: {
-      break;
-    }
-  }
-}
-
-/* CONSTRAINT SOLVE ROUTINES IMPL */
-
-void solve_as_joint(constraint& c) {
-  vec2def impulse_linear_a;
-  vec2def impulse_linear_b;
-  vecndef impulses;
-  matrix inv_m;
+void constraint_presolve(constraint& c) {
   vec2def j1;
   float j2;
   vec2def j3;
   float j4;
   matrix jacobian_transposed;
-  vecndef lambda;
-  vecndef lambda_numerator;
-  matrix lambda_denominator;
-  matrix lambda_denominator1;
   vec2def pa;
   vec2def pa_minus_pb;
   vec2def pb;
   vec2def pb_minus_pa;
   vec2def ra;
   vec2def rb;
-  vecndef v;
 
   //
   // Compute where the anchor point is now in world space. Note that we need to
@@ -170,6 +136,82 @@ void solve_as_joint(constraint& c) {
   c.jacobian.rows[0].data[5] = j4;
 
   //
+  // TODO: We shouldn't keep alloc and freeing jacobian_transposed. We do it
+  // again in solve_as_joint. So I think what we need to do is make it a member
+  // var, update transpose to take a boolean that says "if true we alloc,
+  // otherwise we assume the values are already alloced and we just copy"
+  //
+
+  jacobian_transposed = matrix_transpose(c.jacobian);
+
+  warm_start(c, jacobian_transposed, c.cached_lambda);
+
+  matrix_cleanup(jacobian_transposed);
+}
+
+void constraint_solve(constraint& c) {
+
+  //
+  // Steps to solve
+  // 1. Load the Jacobian
+  // 2. V = GetVelocities
+  // 3. invM = GetInverseMassMatrix
+  // 4. Compute lambda --> impulse to apply to objects A and B
+  // 5. Apply lambda impulse to A and B
+  //
+
+  switch (c.type) {
+    case constraint_type::JOINT: {
+      solve_as_joint(c);
+      break;
+    }
+
+    case constraint_type::PENETRATION: {
+      solve_as_penetration(c);
+      break;
+    }
+
+    default: {
+      break;
+    }
+   }
+}
+
+void constraint_postsolve(constraint& c) {
+}
+
+/* CONSTRAINT SOLVE ROUTINES IMPL */
+
+void warm_start(constraint& c, const matrix& jt, const vecndef& l) {
+  vecndef impulses;
+  vec2def impulse_linear_a;
+  vec2def impulse_linear_b;
+
+  impulses = matrix_vecn_mul(jt, l).value();
+
+  impulse_linear_a.x = impulses.data[0];
+  impulse_linear_a.y = impulses.data[1];
+  body_apply_impulse_linear(*(c.a), impulse_linear_a);
+  body_apply_impulse_angular(*(c.a), impulses.data[2]);
+
+  impulse_linear_b.x = impulses.data[3];
+  impulse_linear_b.y = impulses.data[4];
+  body_apply_impulse_linear(*(c.b), impulse_linear_b);
+  body_apply_impulse_angular(*(c.b), impulses.data[5]);
+
+  vecn_cleanup(impulses);
+}
+
+void solve_as_joint(constraint& c) {
+  matrix inv_m;
+  matrix jacobian_transposed;
+  vecndef lambda;
+  vecndef lambda_numerator;
+  matrix lambda_denominator;
+  matrix lambda_denominator1;
+  vecndef v;
+
+  //
   // Next we get all of the items needed to compute the lambda. This includes:
   // velocities vector, inverse mass matrix, and the transposed jacobian. These
   // will then be used to calculate the impulses which we need to apply to a and
@@ -196,30 +238,21 @@ void solve_as_joint(constraint& c) {
   ).value();
 
   lambda = matrix_solve_gauss_seidel(lambda_denominator, lambda_numerator);
+  vecn_add(c.cached_lambda, lambda);
 
   //
   // Compute the final impulses with direction + magnitude and apply to the
-  // bodies.
+  // bodies. This code is the same as the warm_start code, so we call it here
+  // with this jacobian_transposed + lambda.
   //
 
-  impulses = matrix_vecn_mul(jacobian_transposed, lambda).value();
-
-  impulse_linear_a.x = impulses.data[0];
-  impulse_linear_a.y = impulses.data[1];
-  body_apply_impulse_linear(*(c.a), impulse_linear_a);
-  body_apply_impulse_angular(*(c.a), impulses.data[2]);
-
-  impulse_linear_b.x = impulses.data[3];
-  impulse_linear_b.y = impulses.data[4];
-  body_apply_impulse_linear(*(c.b), impulse_linear_b);
-  body_apply_impulse_angular(*(c.b), impulses.data[5]);
+  warm_start(c, jacobian_transposed, lambda);
 
   //
   // Clean up allocated vectors and matrices.
   // TODO: Seems like a terrible use of space and allocation.
   //
 
-  vecn_cleanup(impulses);
   vecn_cleanup(v);
   matrix_cleanup(inv_m);
   matrix_cleanup(jacobian_transposed);
