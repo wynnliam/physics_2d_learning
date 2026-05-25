@@ -60,37 +60,20 @@ void world_update(world& w, const float delta_time) {
   num_torques = w.torques.size();
 
   //
-  // Apply the forces.
+  // Apply the forces and torques.
   //
 
-  g_vec = vec2def(0.0f, 9.81 * PIXELS_PER_METERS);
+  g_vec = vec2def(0.0f, w.gravity * PIXELS_PER_METERS);
 
   for (i = 0; i < num_bodies; i++) {
     // Apply gravity.
     force_weight = vec2_scale(g_vec, w.bodies[i]->mass);
     body_add_force(*(w.bodies[i]), force_weight);
 
-    // Apply friction
-    force_friction = generate_friction_force(
-      *(w.bodies[i]),
-      w.friction
-    );
-    body_add_force(*(w.bodies[i]), force_friction);
-
-    // Apply drag.
-    force_drag = generate_drag_force(*(w.bodies[i]), w.drag);
-    body_add_force(*(w.bodies[i]), force_drag);
-
     for (j = 0; j < num_forces; j++) {
       body_add_force(*(w.bodies[i]), w.forces[j]);
     }
-  }
 
-  //
-  // Apply torque values.
-  //
-
-  for (i = 0; i < num_bodies; i++) {
     for (j = 0; j < num_torques; j++) {
       body_add_torque(*(w.bodies[i]), w.torques[j]);
     }

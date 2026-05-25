@@ -159,14 +159,16 @@ void constraint_presolve(constraint& c, const float dt) {
   switch (c.type) {
     case constraint_type::JOINT: {
       err = std::max(0.0f, vec2_dot(pb_minus_pa, pb_minus_pa) - 0.01f);
+      break;
     }
 
     default: {
       err = 0.0f;
+      break;
     }
   }
 
-  beta = 0.1f;
+  beta = 0.2f;
   c.bias = (beta / dt) * err;
 
   matrix_cleanup(jacobian_transposed);

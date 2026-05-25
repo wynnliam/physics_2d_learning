@@ -146,6 +146,7 @@ optional<vecndef> matrix_vecn_mul(const matrix& mat, const vecndef& v) {
 vecndef matrix_solve_gauss_seidel(const matrix& A, const vecndef& b) {
   float adi;
   float adx;
+  float delta;
   size_t i;
   size_t n;
   vecndef result;
@@ -159,9 +160,12 @@ vecndef matrix_solve_gauss_seidel(const matrix& A, const vecndef& b) {
   for (curr_iter = 0; curr_iter < n; curr_iter++) {
     for (i = 0; i < n; i++) {
       adi = A.rows[i].data[i];
-      if (adi != 0.0f) {
-        adx = vecn_dot(A.rows[i], result);
-        result.data[i] += (b.data[i] - adx) / adi;
+      adx = vecn_dot(A.rows[i], result);
+      delta = (b.data[i] - adx) / adi;
+
+      // This protects against NaN
+      if (delta == delta) {
+        result.data[i] += delta;
       }
     }
   }
