@@ -151,13 +151,22 @@ void constraint_presolve(constraint& c, const float dt) {
   warm_start(c, jacobian_transposed, c.cached_lambda);
 
   //
-  // Calculate the bias factor (Baumgarte Stabilization). TODO: This will be
-  // dependent on the type of constraint. We should make computing the err
-  // dependent on type.
+  // Calculate the bias factor (Baumgarte Stabilization). TODO: I am assuming
+  // that err is the *only* thing dependent on constraint type. When we add
+  // penetration constraints I will re-examine this.
   //
 
+  switch (c.type) {
+    case constraint_type::JOINT: {
+      err = std::max(0.0f, vec2_dot(pb_minus_pa, pb_minus_pa) - 0.01f);
+    }
+
+    default: {
+      err = 0.0f;
+    }
+  }
+
   beta = 0.1f;
-  err = std::max(0.0f, vec2_dot(pb_minus_pa, pb_minus_pa) - 0.01f);
   c.bias = (beta / dt) * err;
 
   matrix_cleanup(jacobian_transposed);
