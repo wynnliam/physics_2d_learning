@@ -24,6 +24,7 @@ struct constraint {
   vec2def a_point;
   vec2def b_point;
   matrix jacobian;
+  float bias;
   vecndef cached_lambda;
 };
 
@@ -38,7 +39,7 @@ matrix constraint_get_inv_mat(const constraint& c);
 
 vecndef constraint_get_velocities(const constraint& c);
 
-void constraint_presolve(constraint& c);
+void constraint_presolve(constraint& c, const float dt);
 
 void constraint_solve(constraint& c);
 

@@ -30,6 +30,8 @@ void constraint_init_joint(
 
   matrix_init(c.jacobian, 1, 6);
 
+  c.bias = 0.0f;
+
   vecn_init(c.cached_lambda, 1);
   vecn_zero(c.cached_lambda);
 }
@@ -89,7 +91,9 @@ vecndef constraint_get_velocities(const constraint& c) {
   return result;
 }
 
-void constraint_presolve(constraint& c) {
+void constraint_presolve(constraint& c, const float dt) {
+  float beta;
+  float err;
   vec2def j1;
   float j2;
   vec2def j3;
@@ -145,6 +149,16 @@ void constraint_presolve(constraint& c) {
   jacobian_transposed = matrix_transpose(c.jacobian);
 
   warm_start(c, jacobian_transposed, c.cached_lambda);
+
+  //
+  // Calculate the bias factor (Baumgarte Stabilization). TODO: This will be
+  // dependent on the type of constraint. We should make computing the err
+  // dependent on type.
+  //
+
+  beta = 0.1f;
+  err = std::max(0.0f, vec2_dot(pb_minus_pa, pb_minus_pa) - 0.01f);
+  c.bias = (beta / dt) * err;
 
   matrix_cleanup(jacobian_transposed);
 }
@@ -229,7 +243,9 @@ void solve_as_joint(constraint& c) {
 
   lambda_numerator = matrix_vecn_mul(c.jacobian, v).value();
   vecn_scale(lambda_numerator, -1.0f);
-  // TODO: Bias factor
+  // We subtract (not add) because of inversion in last step. Also, the
+  // lambda_numerator will be a single value. Hence we just do [0].
+  lambda_numerator.data[0] -= c.bias;
 
   lambda_denominator1 = matrix_mat_mul(c.jacobian, inv_m).value();
   lambda_denominator = matrix_mat_mul(

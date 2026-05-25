@@ -110,7 +110,7 @@ void world_update(world& w, const float delta_time) {
   //
 
   for (i = 0; i < num_constraints; i++) {
-    constraint_presolve(*(w.constraints[i]));
+    constraint_presolve(*(w.constraints[i]), delta_time);
   }
 
   for (j = 0; j < 5; j++) {
