@@ -36,6 +36,11 @@ void constraint_init_joint(
   vecn_zero(c.cached_lambda);
 }
 
+void constraint_cleanup(constraint& c) {
+  vecn_cleanup(c.cached_lambda);
+  matrix_cleanup(c.jacobian);
+}
+
 matrix constraint_get_inv_mat(const constraint& c) {
   matrix result;
 

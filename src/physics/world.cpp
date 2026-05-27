@@ -141,10 +141,17 @@ void world_check_collisions(world& w) {
 void world_cleanup(world& w) {
   size_t i;
   size_t num_bodies;
+  size_t num_constraints;
 
   num_bodies = w.bodies.size();
   for (i = 0; i < num_bodies; i++) {
     body_cleanup(*(w.bodies[i]));
     delete w.bodies[i];
+  }
+
+  num_constraints = w.constraints.size();
+  for (i = 0; i < num_constraints; i++) {
+    constraint_cleanup(*(w.constraints[i]));
+    delete w.constraints[i];
   }
 }

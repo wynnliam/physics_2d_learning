@@ -35,6 +35,8 @@ void constraint_init_joint(
   const vec2def anchor_point
 );
 
+void constraint_cleanup(constraint& c);
+
 matrix constraint_get_inv_mat(const constraint& c);
 
 vecndef constraint_get_velocities(const constraint& c);
