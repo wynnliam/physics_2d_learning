@@ -284,7 +284,7 @@ void app_input(application& app) {
         SDL_GetMouseState(&x, &y);
 
         if (event.button.button == SDL_BUTTON_LEFT) {
-          circle.radius = 30;
+          circle.radius = 64;
           shape_init(circle);
           basketball = new body;
           body_init(
@@ -301,8 +301,8 @@ void app_input(application& app) {
         }
 
         if (event.button.button == SDL_BUTTON_RIGHT) {
-          box.width = 60;
-          box.height = 60;
+          box.width = 140;
+          box.height = 140;
           shape_init(box);
           crate = new body;
           body_init(

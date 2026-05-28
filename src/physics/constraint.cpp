@@ -6,7 +6,7 @@ using namespace std;
 
 /* CONSTRAINT SOLVE ROUTINES */
 
-static void warm_start(constraint& c, const matrix& jt, const vecndef& l);
+static void apply_impulses(constraint& c, const matrix& jt, const vecndef& l);
 
 static void solve_as_joint(constraint& c);
 
@@ -201,10 +201,11 @@ void constraint_presolve(constraint& c, const float dt) {
 
   jacobian_transposed = matrix_transpose(c.jacobian);
 
-  // TODO: Address!
-  if (c.type != constraint_type::PENETRATION) {
-    warm_start(c, jacobian_transposed, c.cached_lambda);
-  }
+  //
+  // Do warm starting by applying the impulses from our cached lambda.
+  //
+
+  apply_impulses(c, jacobian_transposed, c.cached_lambda);
 
   //
   // Calculate the bias factor (Baumgarte Stabilization).
@@ -266,7 +267,7 @@ void constraint_postsolve(constraint& c) {
 
 /* CONSTRAINT SOLVE ROUTINES IMPL */
 
-void warm_start(constraint& c, const matrix& jt, const vecndef& l) {
+void apply_impulses(constraint& c, const matrix& jt, const vecndef& l) {
   vecndef impulses;
   vec2def impulse_linear_a;
   vec2def impulse_linear_b;
@@ -328,11 +329,10 @@ void solve_as_joint(constraint& c) {
 
   //
   // Compute the final impulses with direction + magnitude and apply to the
-  // bodies. This code is the same as the warm_start code, so we call it here
-  // with this jacobian_transposed + lambda.
+  // bodies.
   //
 
-  warm_start(c, jacobian_transposed, lambda);
+  apply_impulses(c, jacobian_transposed, lambda);
 
   //
   // Clean up allocated vectors and matrices.
@@ -355,6 +355,7 @@ void solve_as_penetration(constraint& c) {
   vecndef lambda_numerator;
   matrix lambda_denominator;
   matrix lambda_denominator1;
+  vecndef prev_cached_lambda;
   vecndef v;
 
   //
@@ -386,15 +387,20 @@ void solve_as_penetration(constraint& c) {
   ).value();
 
   lambda = matrix_solve_gauss_seidel(lambda_denominator, lambda_numerator);
-  //vecn_add(c.cached_lambda, lambda);
+
+  // No idea why the tutorial does this but whatever.
+  vecn_copy(prev_cached_lambda, c.cached_lambda, false);
+  vecn_add(c.cached_lambda, lambda);
+  c.cached_lambda.data[0] =
+    (c.cached_lambda.data[0] < 0.0f) ? 0.0f : c.cached_lambda.data[0];
+  lambda.data[0] = c.cached_lambda.data[0] - prev_cached_lambda.data[0];
 
   //
   // Compute the final impulses with direction + magnitude and apply to the
-  // bodies. This code is the same as the warm_start code, so we call it here
-  // with this jacobian_transposed + lambda.
+  // bodies.
   //
 
-  warm_start(c, jacobian_transposed, lambda);
+  apply_impulses(c, jacobian_transposed, lambda);
 
   //
   // Clean up allocated vectors and matrices.
@@ -408,4 +414,5 @@ void solve_as_penetration(constraint& c) {
   vecn_cleanup(lambda_numerator);
   matrix_cleanup(lambda_denominator1);
   matrix_cleanup(lambda_denominator);
+  vecn_cleanup(prev_cached_lambda);
 }
