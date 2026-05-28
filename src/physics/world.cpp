@@ -43,16 +43,20 @@ void world_add_torque(world& w, const float torque) {
 }
 
 void world_update(world& w, const float delta_time) {
+  collision_contact contact;
   vec2def force_drag;
   vec2def force_friction;
   vec2def force_weight;
   vec2def g_vec;
   size_t i;
   size_t j;
+  constraint* next_constraint;
   size_t num_bodies;
   size_t num_constraints;
   size_t num_forces;
+  size_t num_penetrations;
   size_t num_torques;
+  vector<constraint*> penetrations;
 
   num_bodies = w.bodies.size();
   num_constraints = w.constraints.size();
@@ -89,6 +93,32 @@ void world_update(world& w, const float delta_time) {
   }
 
   //
+  // Handle collisions.
+  //
+
+  for (i = 0; i < num_bodies; i++) {
+    for (j = i + 1; j < num_bodies; j++) {
+      if (is_colliding(w.bodies[i], w.bodies[j], contact)) {
+        //collision_solve_by_impulse(contact);
+
+        next_constraint = new constraint;
+        constraint_init_penetration(
+          *next_constraint,
+          contact.a,
+          contact.b,
+          contact.start,
+          contact.end,
+          contact.normal
+        );
+
+        penetrations.push_back(next_constraint);
+      }
+    }
+  }
+
+  num_penetrations = penetrations.size();
+
+  //
   // Solve all constraints. Apply warm starting
   //
 
@@ -96,14 +126,26 @@ void world_update(world& w, const float delta_time) {
     constraint_presolve(*(w.constraints[i]), delta_time);
   }
 
+  for (i = 0; i < num_penetrations; i++) {
+    constraint_presolve(*(penetrations[i]), delta_time);
+  }
+
   for (j = 0; j < 5; j++) {
     for (i = 0; i < num_constraints; i++) {
       constraint_solve(*(w.constraints[i]));
+    }
+
+    for (i = 0; i < num_penetrations; i++) {
+      constraint_solve(*(penetrations[i]));
     }
   }
 
   for (i = 0; i < num_constraints; i++) {
     constraint_postsolve(*(w.constraints[i]));
+  }
+
+  for (i = 0; i < num_penetrations; i++) {
+    constraint_postsolve(*(penetrations[i]));
   }
 
   //
@@ -115,26 +157,11 @@ void world_update(world& w, const float delta_time) {
   }
 
   //
-  // Handle collisions.
+  // Need to clean up the penetration constraints.
   //
 
-  world_check_collisions(w);
-}
-
-void world_check_collisions(world& w) {
-  collision_contact contact;
-  size_t i;
-  size_t j;
-  size_t num_bodies;
-
-  num_bodies = w.bodies.size();
-  
-  for (i = 0; i < num_bodies; i++) {
-    for (j = i + 1; j < num_bodies; j++) {
-      if (is_colliding(w.bodies[i], w.bodies[j], contact)) {
-        collision_solve_by_impulse(contact);
-      }
-    }
+  for (i = 0; i < num_penetrations; i++) {
+    constraint_cleanup(*(penetrations[i]));
   }
 }
 

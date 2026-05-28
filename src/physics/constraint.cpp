@@ -50,8 +50,8 @@ void constraint_init_penetration(
   c.a = a;
   c.b = b;
 
-  c.a_point = body_world_space_to_local_space(*(c.a), a_point);
-  c.b_point = body_world_space_to_local_space(*(c.b), b_point);
+  c.a_point = body_world_space_to_local_space(*(c.a), a_collision_point);
+  c.b_point = body_world_space_to_local_space(*(c.b), b_collision_point);
   c.normal = body_world_space_to_local_space(*(c.a), collision_normal);
 
   matrix_init(c.jacobian, 1, 6);
@@ -131,6 +131,7 @@ void constraint_presolve(constraint& c, const float dt) {
   float j4;
   matrix jacobian_transposed;
   vec2def n;
+  vec2def n_neg;
   vec2def pa;
   vec2def pa_minus_pb;
   vec2def pb;
@@ -148,24 +149,42 @@ void constraint_presolve(constraint& c, const float dt) {
 
   //
   // Load the jacobian. I will not explain why we use this formula, because I
-  // straight up forgot how we got it. We first compute some values that we
-  // reuse a lot here.
+  // straight up forgot how we got it. We start by computing some values that
+  // are shared between constraint types and reused often. Then, based on the
+  // type, we fill in the jacobian matrix.
   //
 
-  // TODO: FINISH ME! We're here
+  matrix_zero(c.jacobian);
 
   pa_minus_pb = vec2_sub(pa, pb);
-  ra = vec2_sub(pa, c.a->position);
   pb_minus_pa = vec2_sub(pb, pa);
+  ra = vec2_sub(pa, c.a->position);
   rb = vec2_sub(pb, c.b->position);
-  n = body_world_space_to_local_space(*(c.a), c.normal);
+  n = body_local_space_to_world_space(*(c.a), c.normal);
+  n_neg = vec2_scale(n, -1.0f);
 
-  j1 = vec2_scale(pa_minus_pb, 2.0f);
-  j2 = 2.0f * vec2_cross(ra, pa_minus_pb);
-  j3 = vec2_scale(pb_minus_pa, 2.0f);
-  j4 = 2.0f * vec2_cross(rb, pb_minus_pa);
+  switch (c.type) {
+    case constraint_type::JOINT: {
+      j1 = vec2_scale(pa_minus_pb, 2.0f);
+      j2 = 2.0f * vec2_cross(ra, pa_minus_pb);
+      j3 = vec2_scale(pb_minus_pa, 2.0f);
+      j4 = 2.0f * vec2_cross(rb, pb_minus_pa);
+      break;
+    }
 
-  matrix_zero(c.jacobian);
+    case constraint_type::PENETRATION: {
+      j1 = vec2_scale(n, -1.0f);
+      j2 = vec2_cross(vec2_scale(ra, -1.0f), n);
+      j3 = n;
+      j4 = vec2_cross(rb, n);
+      break;
+    }
+
+    default: {
+      break;
+    }
+  }
+
   c.jacobian.rows[0].data[0] = j1.x;
   c.jacobian.rows[0].data[1] = j1.y;
   c.jacobian.rows[0].data[2] = j2;
@@ -182,17 +201,23 @@ void constraint_presolve(constraint& c, const float dt) {
 
   jacobian_transposed = matrix_transpose(c.jacobian);
 
-  warm_start(c, jacobian_transposed, c.cached_lambda);
+  // TODO: Address!
+  if (c.type != constraint_type::PENETRATION) {
+    warm_start(c, jacobian_transposed, c.cached_lambda);
+  }
 
   //
-  // Calculate the bias factor (Baumgarte Stabilization). TODO: I am assuming
-  // that err is the *only* thing dependent on constraint type. When we add
-  // penetration constraints I will re-examine this.
+  // Calculate the bias factor (Baumgarte Stabilization).
   //
 
   switch (c.type) {
     case constraint_type::JOINT: {
       err = std::max(0.0f, vec2_dot(pb_minus_pa, pb_minus_pa) - 0.01f);
+      break;
+    }
+
+    case constraint_type::PENETRATION: {
+      err = std::min(0.0f, vec2_dot(pb_minus_pa, n_neg) + 0.01f);
       break;
     }
 
@@ -324,5 +349,63 @@ void solve_as_joint(constraint& c) {
 }
 
 void solve_as_penetration(constraint& c) {
-  // TODO
+  matrix inv_m;
+  matrix jacobian_transposed;
+  vecndef lambda;
+  vecndef lambda_numerator;
+  matrix lambda_denominator;
+  matrix lambda_denominator1;
+  vecndef v;
+
+  //
+  // Next we get all of the items needed to compute the lambda. This includes:
+  // velocities vector, inverse mass matrix, and the transposed jacobian. These
+  // will then be used to calculate the impulses which we need to apply to a and
+  // b to solve the constraints.
+  //
+
+  v = constraint_get_velocities(c);
+  inv_m = constraint_get_inv_mat(c);
+  jacobian_transposed = matrix_transpose(c.jacobian);
+
+  //
+  // Now we compute lambda. N.B. we should check that the optionals actually
+  // produce values. But I am being a lazy here.
+  //
+
+  lambda_numerator = matrix_vecn_mul(c.jacobian, v).value();
+  vecn_scale(lambda_numerator, -1.0f);
+  // We subtract (not add) because of inversion in last step. Also, the
+  // lambda_numerator will be a single value. Hence we just do [0].
+  lambda_numerator.data[0] -= c.bias;
+
+  lambda_denominator1 = matrix_mat_mul(c.jacobian, inv_m).value();
+  lambda_denominator = matrix_mat_mul(
+    lambda_denominator1,
+    jacobian_transposed
+  ).value();
+
+  lambda = matrix_solve_gauss_seidel(lambda_denominator, lambda_numerator);
+  //vecn_add(c.cached_lambda, lambda);
+
+  //
+  // Compute the final impulses with direction + magnitude and apply to the
+  // bodies. This code is the same as the warm_start code, so we call it here
+  // with this jacobian_transposed + lambda.
+  //
+
+  warm_start(c, jacobian_transposed, lambda);
+
+  //
+  // Clean up allocated vectors and matrices.
+  // TODO: Seems like a terrible use of space and allocation.
+  //
+
+  vecn_cleanup(v);
+  matrix_cleanup(inv_m);
+  matrix_cleanup(jacobian_transposed);
+  vecn_cleanup(lambda);
+  vecn_cleanup(lambda_numerator);
+  matrix_cleanup(lambda_denominator1);
+  matrix_cleanup(lambda_denominator);
 }

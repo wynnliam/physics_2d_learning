@@ -42,8 +42,6 @@ void world_add_torque(world& w, const float torque);
 
 void world_update(world& w, const float delta_time);
 
-void world_check_collisions(world& w);
-
 void world_cleanup(world& w);
 
 #endif
