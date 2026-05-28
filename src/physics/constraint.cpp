@@ -17,7 +17,7 @@ void constraint_init_joint(
   constraint& c,
   body* a,
   body* b,
-  const vec2def anchor_point
+  const vec2def& anchor_point
 ) {
   c = {};
 
@@ -27,6 +27,32 @@ void constraint_init_joint(
 
   c.a_point = body_world_space_to_local_space(*(c.a), anchor_point);
   c.b_point = body_world_space_to_local_space(*(c.b), anchor_point);
+
+  matrix_init(c.jacobian, 1, 6);
+
+  c.bias = 0.0f;
+
+  vecn_init(c.cached_lambda, 1);
+  vecn_zero(c.cached_lambda);
+}
+
+void constraint_init_penetration(
+  constraint& c,
+  body* a,
+  body* b,
+  const vec2def& a_collision_point,
+  const vec2def& b_collision_point,
+  const vec2def& collision_normal
+) {
+  c = {};
+
+  c.type = constraint_type::PENETRATION;
+  c.a = a;
+  c.b = b;
+
+  c.a_point = body_world_space_to_local_space(*(c.a), a_point);
+  c.b_point = body_world_space_to_local_space(*(c.b), b_point);
+  c.normal = body_world_space_to_local_space(*(c.a), collision_normal);
 
   matrix_init(c.jacobian, 1, 6);
 
@@ -104,6 +130,7 @@ void constraint_presolve(constraint& c, const float dt) {
   vec2def j3;
   float j4;
   matrix jacobian_transposed;
+  vec2def n;
   vec2def pa;
   vec2def pa_minus_pb;
   vec2def pb;
@@ -112,9 +139,8 @@ void constraint_presolve(constraint& c, const float dt) {
   vec2def rb;
 
   //
-  // Compute where the anchor point is now in world space. Note that we need to
-  // see the same point in world space relative to both a and b. The constraint
-  // is solved when pa == pb.
+  // Compute where the collision/anchor point is now in world space. Note that
+  // we need to see the same point in world space relative to both a and b.
   //
 
   pa = body_local_space_to_world_space(*(c.a), c.a_point);
@@ -126,10 +152,13 @@ void constraint_presolve(constraint& c, const float dt) {
   // reuse a lot here.
   //
 
+  // TODO: FINISH ME! We're here
+
   pa_minus_pb = vec2_sub(pa, pb);
   ra = vec2_sub(pa, c.a->position);
   pb_minus_pa = vec2_sub(pb, pa);
   rb = vec2_sub(pb, c.b->position);
+  n = body_world_space_to_local_space(*(c.a), c.normal);
 
   j1 = vec2_scale(pa_minus_pb, 2.0f);
   j2 = 2.0f * vec2_cross(ra, pa_minus_pb);

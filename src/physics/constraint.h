@@ -26,13 +26,25 @@ struct constraint {
   matrix jacobian;
   float bias;
   vecndef cached_lambda;
+  // ONLY USED IF CONSTRAINT IS A PENETRATION
+  vec2def normal;
 };
 
 void constraint_init_joint(
   constraint& c,
   body* a,
   body* b,
-  const vec2def anchor_point
+  const vec2def& anchor_point
+);
+
+void constraint_init_penetration(
+  constraint& c,
+  body* a,
+  body* b,
+  // TODO: Should we pass in the contact data itself?
+  const vec2def& a_collision_point,
+  const vec2def& b_collision_point,
+  const vec2def& collision_normal
 );
 
 void constraint_cleanup(constraint& c);
