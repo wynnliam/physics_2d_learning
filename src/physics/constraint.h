@@ -27,7 +27,11 @@ struct constraint {
   float bias;
   vecndef cached_lambda;
   // ONLY USED IF CONSTRAINT IS A PENETRATION
+  // Penetration of the collision in a's local space. TODO: Consider keeping the
+  // World space version too since we use it and don't recalculate.
   vec2def normal;
+  // Coefficient of friction between a and b.
+  float friction;
 };
 
 void constraint_init_joint(

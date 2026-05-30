@@ -294,7 +294,7 @@ void app_input(application& app) {
             y,
             1.0f,
             0.7f,
-            0.0f
+            0.1f
           );
           body_set_texture(*basketball, app.gr, "./assets/basketball.png");
           world_add_body(app.w, basketball);
@@ -312,7 +312,7 @@ void app_input(application& app) {
             y,
             1.0f,
             0.2f,
-            0.0f
+            0.1f
           );
           body_set_texture(*crate, app.gr, "./assets/crate.png");
           world_add_body(app.w, crate);

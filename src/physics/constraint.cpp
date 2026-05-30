@@ -52,13 +52,19 @@ void constraint_init_penetration(
 
   c.a_point = body_world_space_to_local_space(*(c.a), a_collision_point);
   c.b_point = body_world_space_to_local_space(*(c.b), b_collision_point);
-  c.normal = body_world_space_to_local_space(*(c.a), collision_normal);
 
-  matrix_init(c.jacobian, 1, 6);
+  c.normal = body_world_space_to_local_space(*(c.a), collision_normal);
+  c.friction = 0.0f;
+
+  //
+  // The penetration constraint has an additional row for the tangent values.
+  //
+
+  matrix_init(c.jacobian, 2, 6);
 
   c.bias = 0.0f;
 
-  vecn_init(c.cached_lambda, 1);
+  vecn_init(c.cached_lambda, 2);
   vecn_zero(c.cached_lambda);
 }
 
@@ -122,6 +128,10 @@ vecndef constraint_get_velocities(const constraint& c) {
   return result;
 }
 
+//
+// TODO: Break into two sub-routines based on type.
+//
+
 void constraint_presolve(constraint& c, const float dt) {
   float beta;
   float err;
@@ -138,6 +148,8 @@ void constraint_presolve(constraint& c, const float dt) {
   vec2def pb_minus_pa;
   vec2def ra;
   vec2def rb;
+  vec2def t;
+  vec2def t_neg;
 
   //
   // Compute where the collision/anchor point is now in world space. Note that
@@ -162,6 +174,8 @@ void constraint_presolve(constraint& c, const float dt) {
   rb = vec2_sub(pb, c.b->position);
   n = body_local_space_to_world_space(*(c.a), c.normal);
   n_neg = vec2_scale(n, -1.0f);
+  t = vec2_perp(n);
+  t_neg = vec2_scale(t, -1.0f);
 
   switch (c.type) {
     case constraint_type::JOINT: {
@@ -169,14 +183,48 @@ void constraint_presolve(constraint& c, const float dt) {
       j2 = 2.0f * vec2_cross(ra, pa_minus_pb);
       j3 = vec2_scale(pb_minus_pa, 2.0f);
       j4 = 2.0f * vec2_cross(rb, pb_minus_pa);
+
+      c.jacobian.rows[0].data[0] = j1.x;
+      c.jacobian.rows[0].data[1] = j1.y;
+      c.jacobian.rows[0].data[2] = j2;
+      c.jacobian.rows[0].data[3] = j3.x;
+      c.jacobian.rows[0].data[4] = j3.y;
+      c.jacobian.rows[0].data[5] = j4;
       break;
     }
 
     case constraint_type::PENETRATION: {
-      j1 = vec2_scale(n, -1.0f);
+      j1 = n_neg;
       j2 = vec2_cross(vec2_scale(ra, -1.0f), n);
       j3 = n;
       j4 = vec2_cross(rb, n);
+
+      c.jacobian.rows[0].data[0] = j1.x;
+      c.jacobian.rows[0].data[1] = j1.y;
+      c.jacobian.rows[0].data[2] = j2;
+      c.jacobian.rows[0].data[3] = j3.x;
+      c.jacobian.rows[0].data[4] = j3.y;
+      c.jacobian.rows[0].data[5] = j4;
+
+      //
+      // Now compute the values for the tangent.
+      //
+
+      c.friction = std::max(c.a->friction, c.b->friction);
+      if (c.friction > 0.0f) {
+        j1 = t_neg;
+        j2 = vec2_cross(vec2_scale(ra, -1.0f), t);
+        j3 = t;
+        j4 = vec2_cross(rb, t);
+
+        c.jacobian.rows[1].data[0] = j1.x;
+        c.jacobian.rows[1].data[1] = j1.y;
+        c.jacobian.rows[1].data[2] = j2;
+        c.jacobian.rows[1].data[3] = j3.x;
+        c.jacobian.rows[1].data[4] = j3.y;
+        c.jacobian.rows[1].data[5] = j4;
+      }
+
       break;
     }
 
@@ -184,13 +232,6 @@ void constraint_presolve(constraint& c, const float dt) {
       break;
     }
   }
-
-  c.jacobian.rows[0].data[0] = j1.x;
-  c.jacobian.rows[0].data[1] = j1.y;
-  c.jacobian.rows[0].data[2] = j2;
-  c.jacobian.rows[0].data[3] = j3.x;
-  c.jacobian.rows[0].data[4] = j3.y;
-  c.jacobian.rows[0].data[5] = j4;
 
   //
   // TODO: We shouldn't keep alloc and freeing jacobian_transposed. We do it
