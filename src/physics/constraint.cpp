@@ -1,12 +1,17 @@
 // Liam Wynn, 5-12-2026, 2D Physics Engine
 
 #include "constraint.h"
+#include <algorithm>
 
 using namespace std;
 
 /* CONSTRAINT SOLVE ROUTINES */
 
 static void apply_impulses(constraint& c, const matrix& jt, const vecndef& l);
+
+static void presolve_as_joint(constraint& c, const float dt);
+
+static void presolve_as_penetration(constraint& c, const float dt);
 
 static void solve_as_joint(constraint& c);
 
@@ -34,6 +39,8 @@ void constraint_init_joint(
 
   vecn_init(c.cached_lambda, 1);
   vecn_zero(c.cached_lambda);
+
+  c.friction = 0.0f;
 }
 
 void constraint_init_penetration(
@@ -133,98 +140,14 @@ vecndef constraint_get_velocities(const constraint& c) {
 //
 
 void constraint_presolve(constraint& c, const float dt) {
-  float beta;
-  float err;
-  vec2def j1;
-  float j2;
-  vec2def j3;
-  float j4;
-  matrix jacobian_transposed;
-  vec2def n;
-  vec2def n_neg;
-  vec2def pa;
-  vec2def pa_minus_pb;
-  vec2def pb;
-  vec2def pb_minus_pa;
-  vec2def ra;
-  vec2def rb;
-  vec2def t;
-  vec2def t_neg;
-
-  //
-  // Compute where the collision/anchor point is now in world space. Note that
-  // we need to see the same point in world space relative to both a and b.
-  //
-
-  pa = body_local_space_to_world_space(*(c.a), c.a_point);
-  pb = body_local_space_to_world_space(*(c.b), c.b_point);
-
-  //
-  // Load the jacobian. I will not explain why we use this formula, because I
-  // straight up forgot how we got it. We start by computing some values that
-  // are shared between constraint types and reused often. Then, based on the
-  // type, we fill in the jacobian matrix.
-  //
-
-  matrix_zero(c.jacobian);
-
-  pa_minus_pb = vec2_sub(pa, pb);
-  pb_minus_pa = vec2_sub(pb, pa);
-  ra = vec2_sub(pa, c.a->position);
-  rb = vec2_sub(pb, c.b->position);
-  n = body_local_space_to_world_space(*(c.a), c.normal);
-  n_neg = vec2_scale(n, -1.0f);
-  t = vec2_perp(n);
-  t_neg = vec2_scale(t, -1.0f);
-
   switch (c.type) {
     case constraint_type::JOINT: {
-      j1 = vec2_scale(pa_minus_pb, 2.0f);
-      j2 = 2.0f * vec2_cross(ra, pa_minus_pb);
-      j3 = vec2_scale(pb_minus_pa, 2.0f);
-      j4 = 2.0f * vec2_cross(rb, pb_minus_pa);
-
-      c.jacobian.rows[0].data[0] = j1.x;
-      c.jacobian.rows[0].data[1] = j1.y;
-      c.jacobian.rows[0].data[2] = j2;
-      c.jacobian.rows[0].data[3] = j3.x;
-      c.jacobian.rows[0].data[4] = j3.y;
-      c.jacobian.rows[0].data[5] = j4;
+      presolve_as_joint(c, dt);
       break;
     }
 
     case constraint_type::PENETRATION: {
-      j1 = n_neg;
-      j2 = vec2_cross(vec2_scale(ra, -1.0f), n);
-      j3 = n;
-      j4 = vec2_cross(rb, n);
-
-      c.jacobian.rows[0].data[0] = j1.x;
-      c.jacobian.rows[0].data[1] = j1.y;
-      c.jacobian.rows[0].data[2] = j2;
-      c.jacobian.rows[0].data[3] = j3.x;
-      c.jacobian.rows[0].data[4] = j3.y;
-      c.jacobian.rows[0].data[5] = j4;
-
-      //
-      // Now compute the values for the tangent.
-      //
-
-      c.friction = std::max(c.a->friction, c.b->friction);
-      if (c.friction > 0.0f) {
-        j1 = t_neg;
-        j2 = vec2_cross(vec2_scale(ra, -1.0f), t);
-        j3 = t;
-        j4 = vec2_cross(rb, t);
-
-        c.jacobian.rows[1].data[0] = j1.x;
-        c.jacobian.rows[1].data[1] = j1.y;
-        c.jacobian.rows[1].data[2] = j2;
-        c.jacobian.rows[1].data[3] = j3.x;
-        c.jacobian.rows[1].data[4] = j3.y;
-        c.jacobian.rows[1].data[5] = j4;
-      }
-
+      presolve_as_penetration(c, dt);
       break;
     }
 
@@ -232,47 +155,6 @@ void constraint_presolve(constraint& c, const float dt) {
       break;
     }
   }
-
-  //
-  // TODO: We shouldn't keep alloc and freeing jacobian_transposed. We do it
-  // again in solve_as_joint. So I think what we need to do is make it a member
-  // var, update transpose to take a boolean that says "if true we alloc,
-  // otherwise we assume the values are already alloced and we just copy"
-  //
-
-  jacobian_transposed = matrix_transpose(c.jacobian);
-
-  //
-  // Do warm starting by applying the impulses from our cached lambda.
-  //
-
-  apply_impulses(c, jacobian_transposed, c.cached_lambda);
-
-  //
-  // Calculate the bias factor (Baumgarte Stabilization).
-  //
-
-  switch (c.type) {
-    case constraint_type::JOINT: {
-      err = std::max(0.0f, vec2_dot(pb_minus_pa, pb_minus_pa) - 0.01f);
-      break;
-    }
-
-    case constraint_type::PENETRATION: {
-      err = std::min(0.0f, vec2_dot(pb_minus_pa, n_neg) + 0.01f);
-      break;
-    }
-
-    default: {
-      err = 0.0f;
-      break;
-    }
-  }
-
-  beta = 0.2f;
-  c.bias = (beta / dt) * err;
-
-  matrix_cleanup(jacobian_transposed);
 }
 
 void constraint_solve(constraint& c) {
@@ -300,7 +182,7 @@ void constraint_solve(constraint& c) {
     default: {
       break;
     }
-   }
+  }
 }
 
 void constraint_postsolve(constraint& c) {
@@ -326,6 +208,210 @@ void apply_impulses(constraint& c, const matrix& jt, const vecndef& l) {
   body_apply_impulse_angular(*(c.b), impulses.data[5]);
 
   vecn_cleanup(impulses);
+}
+
+void presolve_as_joint(constraint& c, const float dt) {
+  float beta;
+  float err;
+  vec2def j1;
+  float j2;
+  vec2def j3;
+  float j4;
+  matrix jacobian_transposed;
+  vec2def pa;
+  vec2def pa_minus_pb;
+  vec2def pb;
+  vec2def pb_minus_pa;
+  vec2def ra;
+  vec2def rb;
+
+  //
+  // Compute where the collision/anchor point is now in world space. Note that
+  // we need to see the same point in world space relative to both a and b.
+  //
+
+  pa = body_local_space_to_world_space(*(c.a), c.a_point);
+  pb = body_local_space_to_world_space(*(c.b), c.b_point);
+
+  //
+  // Load the jacobian. I will not explain why we use this formula, because I
+  // straight up forgot how we got it. We start by computing some values that
+  // are shared between constraint types and reused often. Then, based on the
+  // type, we fill in the jacobian matrix.
+  //
+
+  matrix_zero(c.jacobian);
+
+  pa_minus_pb = vec2_sub(pa, pb);
+  pb_minus_pa = vec2_sub(pb, pa);
+  ra = vec2_sub(pa, c.a->position);
+  rb = vec2_sub(pb, c.b->position);
+
+  j1 = vec2_scale(pa_minus_pb, 2.0f);
+  j2 = 2.0f * vec2_cross(ra, pa_minus_pb);
+  j3 = vec2_scale(pb_minus_pa, 2.0f);
+  j4 = 2.0f * vec2_cross(rb, pb_minus_pa);
+
+  c.jacobian.rows[0].data[0] = j1.x;
+  c.jacobian.rows[0].data[1] = j1.y;
+  c.jacobian.rows[0].data[2] = j2;
+  c.jacobian.rows[0].data[3] = j3.x;
+  c.jacobian.rows[0].data[4] = j3.y;
+  c.jacobian.rows[0].data[5] = j4;
+
+  //
+  // TODO: We shouldn't keep alloc and freeing jacobian_transposed. We do it
+  // again in solve_as_joint. So I think what we need to do is make it a member
+  // var, update transpose to take a boolean that says "if true we alloc,
+  // otherwise we assume the values are already alloced and we just copy"
+  //
+
+  jacobian_transposed = matrix_transpose(c.jacobian);
+
+  //
+  // Do warm starting by applying the impulses from our cached lambda.
+  //
+
+  apply_impulses(c, jacobian_transposed, c.cached_lambda);
+
+  //
+  // Calculate the bias factor (Baumgarte Stabilization).
+  //
+
+  err = std::max(0.0f, vec2_dot(pb_minus_pa, pb_minus_pa) - 0.01f);
+
+  beta = 0.2f;
+  c.bias = (beta / dt) * err;
+
+  matrix_cleanup(jacobian_transposed);
+}
+
+void presolve_as_penetration(constraint& c, const float dt) {
+  float beta;
+  float err;
+  float elast;
+  vec2def j1;
+  float j2;
+  vec2def j3;
+  float j4;
+  matrix jacobian_transposed;
+  vec2def n;
+  vec2def n_neg;
+  vec2def pa;
+  vec2def pa_minus_pb;
+  vec2def pb;
+  vec2def pb_minus_pa;
+  vec2def ra;
+  vec2def rb;
+  vec2def t;
+  vec2def t_neg;
+  vec2def va;
+  vec2def va_angular;
+  vec2def va_minus_vb;
+  vec2def vb;
+  vec2def vb_angular;
+  float vrel_dot_n;
+
+  //
+  // Compute where the collision/anchor point is now in world space. Note that
+  // we need to see the same point in world space relative to both a and b.
+  //
+
+  pa = body_local_space_to_world_space(*(c.a), c.a_point);
+  pb = body_local_space_to_world_space(*(c.b), c.b_point);
+
+  //
+  // Load the jacobian. I will not explain why we use this formula, because I
+  // straight up forgot how we got it. We start by computing some values that
+  // are shared between constraint types and reused often. Then, based on the
+  // type, we fill in the jacobian matrix.
+  //
+
+  matrix_zero(c.jacobian);
+
+  pa_minus_pb = vec2_sub(pa, pb);
+  pb_minus_pa = vec2_sub(pb, pa);
+  ra = vec2_sub(pa, c.a->position);
+  rb = vec2_sub(pb, c.b->position);
+
+  n = body_local_space_to_world_space(*(c.a), c.normal);
+  n_neg = vec2_scale(n, -1.0f);
+  t = vec2_perp(n);
+  t_neg = vec2_scale(t, -1.0f);
+
+  j1 = n_neg;
+  j2 = vec2_cross(vec2_scale(ra, -1.0f), n);
+  j3 = n;
+  j4 = vec2_cross(rb, n);
+
+  c.jacobian.rows[0].data[0] = j1.x;
+  c.jacobian.rows[0].data[1] = j1.y;
+  c.jacobian.rows[0].data[2] = j2;
+  c.jacobian.rows[0].data[3] = j3.x;
+  c.jacobian.rows[0].data[4] = j3.y;
+  c.jacobian.rows[0].data[5] = j4;
+
+  //
+  // Now compute the values for the tangent.
+  //
+
+  c.friction = std::max(c.a->friction, c.b->friction);
+  if (c.friction > 0.0f) {
+    j1 = t_neg;
+    j2 = vec2_cross(vec2_scale(ra, -1.0f), t);
+    j3 = t;
+    j4 = vec2_cross(rb, t);
+
+    c.jacobian.rows[1].data[0] = j1.x;
+    c.jacobian.rows[1].data[1] = j1.y;
+    c.jacobian.rows[1].data[2] = j2;
+    c.jacobian.rows[1].data[3] = j3.x;
+    c.jacobian.rows[1].data[4] = j3.y;
+    c.jacobian.rows[1].data[5] = j4;
+  }
+
+  //
+  // TODO: We shouldn't keep alloc and freeing jacobian_transposed. We do it
+  // again in solve_as_joint. So I think what we need to do is make it a member
+  // var, update transpose to take a boolean that says "if true we alloc,
+  // otherwise we assume the values are already alloced and we just copy"
+  //
+
+  jacobian_transposed = matrix_transpose(c.jacobian);
+
+  //
+  // Do warm starting by applying the impulses from our cached lambda.
+  //
+
+  apply_impulses(c, jacobian_transposed, c.cached_lambda);
+
+  //
+  // Calculate relative velocity pre-impulse normal to compute elasticity;
+  //
+
+  va_angular = vec2def(-ra.y, ra.x);
+  va_angular = vec2_scale(va_angular, c.a->angular_velocity);
+  va = vec2_add(c.a->velocity, va_angular);
+
+  vb_angular = vec2def(-rb.y, rb.x);
+  vb_angular = vec2_scale(vb_angular, c.b->angular_velocity);
+  vb = vec2_add(c.b->velocity, vb_angular);
+
+  va_minus_vb = vec2_sub(va, vb);
+  vrel_dot_n = vec2_dot(va_minus_vb, n);
+
+  elast = std::min(c.a->restitution, c.b->restitution);
+
+  //
+  // Calculate the bias factor (Baumgarte Stabilization).
+  //
+
+  err = std::min(0.0f, vec2_dot(pb_minus_pa, n_neg) + 0.01f);
+
+  beta = 0.2f;
+  c.bias = (beta / dt) * err + (elast * vrel_dot_n);
+
+  matrix_cleanup(jacobian_transposed);
 }
 
 void solve_as_joint(constraint& c) {
@@ -396,6 +482,7 @@ void solve_as_penetration(constraint& c) {
   vecndef lambda_numerator;
   matrix lambda_denominator;
   matrix lambda_denominator1;
+  float max_friction;
   vecndef prev_cached_lambda;
   vecndef v;
 
@@ -434,7 +521,18 @@ void solve_as_penetration(constraint& c) {
   vecn_add(c.cached_lambda, lambda);
   c.cached_lambda.data[0] =
     (c.cached_lambda.data[0] < 0.0f) ? 0.0f : c.cached_lambda.data[0];
+
+  if (c.friction > 0.0f) {
+    max_friction = c.cached_lambda.data[0] * c.friction;
+    c.cached_lambda.data[1] = std::clamp(
+      c.cached_lambda.data[1],
+      -max_friction,
+      max_friction
+    );
+  }
+
   lambda.data[0] = c.cached_lambda.data[0] - prev_cached_lambda.data[0];
+  lambda.data[1] = c.cached_lambda.data[1] - prev_cached_lambda.data[1];
 
   //
   // Compute the final impulses with direction + magnitude and apply to the

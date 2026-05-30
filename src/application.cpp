@@ -31,175 +31,175 @@ void app_setup(application& app) {
   // Add all of the ragdoll components.
   //
 
-  //circle.radius = 5.0f;
-  //shape_init(circle);
-  //body* bob = new body;
-  //body_init(
-  //  *bob,
-  //  circle,
-  //  app.gr.window_w / 2,
-  //  app.gr.window_h / 2 - 200,
-  //  0.0f,
-  //  0.0f,
-  //  0.0f
-  //);
+  /*circle.radius = 5.0f;
+  shape_init(circle);
+  body* bob = new body;
+  body_init(
+    *bob,
+    circle,
+    app.gr.window_w / 2,
+    app.gr.window_h / 2 - 200,
+    0.0f,
+    0.0f,
+    0.0f
+  );
 
-  //circle.radius = 25.0f;
-  //shape_init(circle);
-  //body* head = new body;
-  //body_init(
-  //  *head,
-  //  circle,
-  //  bob->position.x,
-  //  bob->position.y + 70,
-  //  5.0f,
-  //  1.0f,
-  //  0.7f
-  //);
+  circle.radius = 25.0f;
+  shape_init(circle);
+  body* head = new body;
+  body_init(
+    *head,
+    circle,
+    bob->position.x,
+    bob->position.y + 70,
+    5.0f,
+    1.0f,
+    0.7f
+  );
 
-  //box.width = 50;
-  //box.height = 100;
-  //shape_init(box);
-  //body* torso = new body;
-  //body_init(
-  //  *torso,
-  //  box,
-  //  head->position.x,
-  //  head->position.y + 80,
-  //  3.0f,
-  //  1.0f,
-  //  0.7f
-  //);
+  box.width = 50;
+  box.height = 100;
+  shape_init(box);
+  body* torso = new body;
+  body_init(
+    *torso,
+    box,
+    head->position.x,
+    head->position.y + 80,
+    3.0f,
+    1.0f,
+    0.7f
+  );
 
-  //box.width = 15;
-  //box.height = 70;
-  //shape_init(box);
-  //body* left_arm = new body;
-  //body_init(
-  //  *left_arm,
-  //  box,
-  //  torso->position.x - 32,
-  //  torso->position.y - 10,
-  //  1.0f,
-  //  1.0f,
-  //  0.7f
-  //);
+  box.width = 15;
+  box.height = 70;
+  shape_init(box);
+  body* left_arm = new body;
+  body_init(
+    *left_arm,
+    box,
+    torso->position.x - 32,
+    torso->position.y - 10,
+    1.0f,
+    1.0f,
+    0.7f
+  );
 
-  //body* right_arm = new body;
-  //body_init(
-  //  *right_arm,
-  //  box,
-  //  torso->position.x + 32,
-  //  torso->position.y - 10,
-  //  1.0f,
-  //  1.0f,
-  //  0.7f
-  //);
+  body* right_arm = new body;
+  body_init(
+    *right_arm,
+    box,
+    torso->position.x + 32,
+    torso->position.y - 10,
+    1.0f,
+    1.0f,
+    0.7f
+  );
 
-  //box.width = 20;
-  //box.height = 90;
-  //shape_init(box);
-  //body* left_leg = new body;
-  //body_init(
-  //  *left_leg,
-  //  box,
-  //  torso->position.x - 20,
-  //  torso->position.y + 97,
-  //  1.0f,
-  //  1.0f,
-  //  0.7f
-  //);
+  box.width = 20;
+  box.height = 90;
+  shape_init(box);
+  body* left_leg = new body;
+  body_init(
+    *left_leg,
+    box,
+    torso->position.x - 20,
+    torso->position.y + 97,
+    1.0f,
+    1.0f,
+    0.7f
+  );
 
-  //body* right_leg = new body;
-  //body_init(
-  //  *right_leg,
-  //  box,
-  //  torso->position.x + 20,
-  //  torso->position.y + 97,
-  //  1.0f,
-  //  1.0f,
-  //  0.7f
-  //);
+  body* right_leg = new body;
+  body_init(
+    *right_leg,
+    box,
+    torso->position.x + 20,
+    torso->position.y + 97,
+    1.0f,
+    1.0f,
+    0.7f
+  );
 
-  //body_set_texture(*bob, app.gr, "./assets/ragdoll/bob.png");
-  //body_set_texture(*head, app.gr, "./assets/ragdoll/head.png");
-  //body_set_texture(*torso, app.gr, "./assets/ragdoll/torso.png");
-  //body_set_texture(*left_arm, app.gr, "./assets/ragdoll/leftArm.png");
-  //body_set_texture(*right_arm, app.gr, "./assets/ragdoll/rightArm.png");
-  //body_set_texture(*left_leg, app.gr, "./assets/ragdoll/leftLeg.png");
-  //body_set_texture(*right_leg, app.gr, "./assets/ragdoll/rightLeg.png");
+  body_set_texture(*bob, app.gr, "./assets/ragdoll/bob.png");
+  body_set_texture(*head, app.gr, "./assets/ragdoll/head.png");
+  body_set_texture(*torso, app.gr, "./assets/ragdoll/torso.png");
+  body_set_texture(*left_arm, app.gr, "./assets/ragdoll/leftArm.png");
+  body_set_texture(*right_arm, app.gr, "./assets/ragdoll/rightArm.png");
+  body_set_texture(*left_leg, app.gr, "./assets/ragdoll/leftLeg.png");
+  body_set_texture(*right_leg, app.gr, "./assets/ragdoll/rightLeg.png");
 
-  //world_add_body(app.w, bob);
-  //world_add_body(app.w, head);
-  //world_add_body(app.w, torso);
-  //world_add_body(app.w, left_arm);
-  //world_add_body(app.w, right_arm);
-  //world_add_body(app.w, left_leg);
-  //world_add_body(app.w, right_leg);
+  world_add_body(app.w, bob);
+  world_add_body(app.w, head);
+  world_add_body(app.w, torso);
+  world_add_body(app.w, left_arm);
+  world_add_body(app.w, right_arm);
+  world_add_body(app.w, left_leg);
+  world_add_body(app.w, right_leg);
 
   //
   // Now add all of the ragdoll constraints
   //
 
-  //constraint* string = new constraint;
-  //constraint_init_joint(
-  //  *string,
-  //  bob,
-  //  head,
-  //  bob->position
-  //);
+  constraint* string = new constraint;
+  constraint_init_joint(
+    *string,
+    bob,
+    head,
+    bob->position
+  );
 
-  //anchor = vec2_add(head->position, vec2def(0, 25));
-  //constraint* neck = new constraint;
-  //constraint_init_joint(
-  //  *neck,
-  //  head,
-  //  torso,
-  //  anchor
-  //);
+  anchor = vec2_add(head->position, vec2def(0, 25));
+  constraint* neck = new constraint;
+  constraint_init_joint(
+    *neck,
+    head,
+    torso,
+    anchor
+  );
 
-  //anchor = vec2_add(torso->position, vec2def(-28, -45));
-  //constraint* left_shoulder = new constraint;
-  //constraint_init_joint(
-  //  *left_shoulder,
-  //  torso,
-  //  left_arm,
-  //  anchor
-  //);
+  anchor = vec2_add(torso->position, vec2def(-28, -45));
+  constraint* left_shoulder = new constraint;
+  constraint_init_joint(
+    *left_shoulder,
+    torso,
+    left_arm,
+    anchor
+  );
 
-  //anchor = vec2_add(torso->position, vec2def(28, -45));
-  //constraint* right_shoulder = new constraint;
-  //constraint_init_joint(
-  //  *right_shoulder,
-  //  torso,
-  //  right_arm,
-  //  anchor
-  //);
+  anchor = vec2_add(torso->position, vec2def(28, -45));
+  constraint* right_shoulder = new constraint;
+  constraint_init_joint(
+    *right_shoulder,
+    torso,
+    right_arm,
+    anchor
+  );
 
-  //anchor = vec2_add(torso->position, vec2def(-20, 50));
-  //constraint* left_hip = new constraint;
-  //constraint_init_joint(
-  //  *left_hip,
-  //  torso,
-  //  left_leg,
-  //  anchor
-  //);
+  anchor = vec2_add(torso->position, vec2def(-20, 50));
+  constraint* left_hip = new constraint;
+  constraint_init_joint(
+    *left_hip,
+    torso,
+    left_leg,
+    anchor
+  );
 
-  //anchor = vec2_add(torso->position, vec2def(20, 50));
-  //constraint* right_hip = new constraint;
-  //constraint_init_joint(
-  //  *right_hip,
-  //  torso,
-  //  right_leg,
-  //  anchor
-  //);
+  anchor = vec2_add(torso->position, vec2def(20, 50));
+  constraint* right_hip = new constraint;
+  constraint_init_joint(
+    *right_hip,
+    torso,
+    right_leg,
+    anchor
+  );
 
-  //world_add_constraint(app.w, string);
-  //world_add_constraint(app.w, neck);
-  //world_add_constraint(app.w, left_shoulder);
-  //world_add_constraint(app.w, right_shoulder);
-  //world_add_constraint(app.w, left_hip);
-  //world_add_constraint(app.w, right_hip);
+  world_add_constraint(app.w, string);
+  world_add_constraint(app.w, neck);
+  world_add_constraint(app.w, left_shoulder);
+  world_add_constraint(app.w, right_shoulder);
+  world_add_constraint(app.w, left_hip);
+  world_add_constraint(app.w, right_hip);*/
   
   //
   // Now add the floor and walls to contain all the components.
