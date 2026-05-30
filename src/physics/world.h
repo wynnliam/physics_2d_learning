@@ -11,6 +11,7 @@
 #define WORLD
 
 #include "./body.h"
+#include "./collision.h"
 #include "./constraint.h"
 #include "./vec2def.h"
 #include <vector>
@@ -23,6 +24,9 @@ struct world {
   float gravity;
   float drag;
   float friction;
+
+  // TODO: Only for testing collisions!!!! Please remove :(
+  std::vector<collision_contact> debug_contact;
 };
 
 void world_init(

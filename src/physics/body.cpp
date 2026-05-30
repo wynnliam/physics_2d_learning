@@ -147,9 +147,10 @@ void body_integrate_forces(body& p, const float delta_time) {
 }
 
 void body_integrate_velocities(body& p, const float delta_time) {
-  if (body_is_static(p)) {
-    return;
-  }
+  // TODO: This is only here for testing!!!
+  //if (body_is_static(p)) {
+  //  return;
+  //}
 
   p.position = vec2_add(vec2_scale(p.velocity, delta_time), p.position);
   p.rotation += p.angular_velocity * delta_time;

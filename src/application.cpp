@@ -200,6 +200,39 @@ void app_setup(application& app) {
   world_add_constraint(app.w, right_shoulder);
   world_add_constraint(app.w, left_hip);
   world_add_constraint(app.w, right_hip);*/
+
+  //
+  // Add two boxes to the scene which we can experiment with.
+  //
+
+  box.width = 200;
+  box.height = 200;
+  shape_init(box);
+
+  body* a = new body;
+  body_init(
+    *a,
+    box,
+    app.gr.window_w / 2,
+    app.gr.window_h / 2,
+    0.0f,
+    0.7f,
+    0.2f
+  );
+
+  body* b = new body;
+  body_init(
+    *b,
+    box,
+    300.0f,
+    0.0f,
+    0.0f,
+    0.7f,
+    0.2f
+  );
+
+  world_add_body(app.w, a);
+  world_add_body(app.w, b);
   
   //
   // Now add the floor and walls to contain all the components.
@@ -255,7 +288,7 @@ bool app_is_running(application& app) {
 
 void app_input(application& app) {
   body* basketball;
-  body* bob;
+  body* bod;
   vec2def bob_vel;
   boxdef box;
   circledef circle;
@@ -322,10 +355,11 @@ void app_input(application& app) {
       }
 
       case SDL_MOUSEMOTION: {
-        //SDL_GetMouseState(&x, &y);
-        //bob = app.w.bodies[0];
-        //bob->position.x = x;
-        //bob->position.y = y;
+        SDL_GetMouseState(&x, &y);
+        bod = app.w.bodies[1];
+        bod->position.x = x;
+        bod->position.y = y;
+        //shape_transform(bod->shape, bod->position, bod->rotation);
         break;
       }
     }
@@ -372,6 +406,7 @@ void app_draw(application& app) {
   uint32_t body_color;
   size_t i;
   size_t num_bodies;
+  size_t num_contacts;
 
   graphics_clear_screen(app.gr, 0xFF056263);
 
@@ -389,6 +424,29 @@ void app_draw(application& app) {
       body_color
     );
   }
+
+  num_contacts = app.w.debug_contact.size();
+  for (i = 0; i < num_contacts; i++) {
+    graphics_draw_circle(
+      app.gr,
+      app.w.debug_contact[i].start.x,
+      app.w.debug_contact[i].start.y,
+      5.0f,
+      0.0f,
+      0xFF00FFFF
+    );
+
+    graphics_draw_circle(
+      app.gr,
+      app.w.debug_contact[i].end.x,
+      app.w.debug_contact[i].end.y,
+      2.0f,
+      0.0f,
+      0xFF00FFFF
+    );
+  }
+
+  app.w.debug_contact.clear();
 
   graphics_draw_frame(app.gr);
 }

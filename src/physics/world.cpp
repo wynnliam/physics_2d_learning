@@ -1,7 +1,6 @@
 // Liam Wynn, 4-28-2026, 2D Physics Engine
 
 #include "./world.h"
-#include "./collision.h"
 #include "./constants.h"
 #include "./force.h"
 
@@ -100,6 +99,7 @@ void world_update(world& w, const float delta_time) {
     for (j = i + 1; j < num_bodies; j++) {
       if (is_colliding(w.bodies[i], w.bodies[j], contact)) {
         //collision_solve_by_impulse(contact);
+        w.debug_contact.push_back(contact);
 
         next_constraint = new constraint;
         constraint_init_penetration(
