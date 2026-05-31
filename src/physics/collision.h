@@ -22,7 +22,7 @@ struct collision_contact {
   float depth;
 };
 
-bool is_colliding(body* a, body* b, collision_contact& contact);
+bool is_colliding(body* a, body* b, std::vector<collision_contact>& contact);
 
 void collision_solve_by_projection(collision_contact& contact);
 

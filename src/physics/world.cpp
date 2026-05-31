@@ -42,16 +42,18 @@ void world_add_torque(world& w, const float torque) {
 }
 
 void world_update(world& w, const float delta_time) {
-  collision_contact contact;
+  vector<collision_contact> contacts;
   vec2def force_drag;
   vec2def force_friction;
   vec2def force_weight;
   vec2def g_vec;
   size_t i;
   size_t j;
+  size_t k;
   constraint* next_constraint;
   size_t num_bodies;
   size_t num_constraints;
+  size_t num_contacts;
   size_t num_forces;
   size_t num_penetrations;
   size_t num_torques;
@@ -97,11 +99,17 @@ void world_update(world& w, const float delta_time) {
 
   for (i = 0; i < num_bodies; i++) {
     for (j = i + 1; j < num_bodies; j++) {
-      if (is_colliding(w.bodies[i], w.bodies[j], contact)) {
-        //collision_solve_by_impulse(contact);
-        w.debug_contact.push_back(contact);
+      contacts.clear();
 
-        next_constraint = new constraint;
+      if (is_colliding(w.bodies[i], w.bodies[j], contacts)) {
+        //collision_solve_by_impulse(contact);
+
+        num_contacts = contacts.size();
+        for (k = 0; k < num_contacts; k++) {
+          w.debug_contact.push_back(contacts[k]);
+        }
+
+        /*next_constraint = new constraint;
         constraint_init_penetration(
           *next_constraint,
           contact.a,
@@ -111,7 +119,7 @@ void world_update(world& w, const float delta_time) {
           contact.normal
         );
 
-        penetrations.push_back(next_constraint);
+        penetrations.push_back(next_constraint);*/
       }
     }
   }
@@ -122,7 +130,7 @@ void world_update(world& w, const float delta_time) {
   // Solve all constraints. Apply warm starting
   //
 
-  for (i = 0; i < num_constraints; i++) {
+  /*for (i = 0; i < num_constraints; i++) {
     constraint_presolve(*(w.constraints[i]), delta_time);
   }
 
@@ -146,7 +154,7 @@ void world_update(world& w, const float delta_time) {
 
   for (i = 0; i < num_penetrations; i++) {
     constraint_postsolve(*(penetrations[i]));
-  }
+  }*/
 
   //
   // Now update our positions using our velocities.

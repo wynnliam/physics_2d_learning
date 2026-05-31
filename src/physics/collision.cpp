@@ -5,6 +5,8 @@
 #include <limits>
 #include <variant>
 
+using namespace std;
+
 // When  computing the min separation, we return this collection of data here.
 struct separation_info {
   // The amount of separation.
@@ -22,7 +24,7 @@ static bool shape_collision(
   const circledef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 );
 
 static bool shape_collision(
@@ -30,7 +32,7 @@ static bool shape_collision(
   const boxdef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 );
 
 static bool shape_collision(
@@ -38,7 +40,7 @@ static bool shape_collision(
   const polydef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 );
 
 static bool shape_collision(
@@ -46,7 +48,7 @@ static bool shape_collision(
   const polydef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 );
 
 static bool shape_collision(
@@ -54,7 +56,7 @@ static bool shape_collision(
   const boxdef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 );
 
 bool shape_collision(
@@ -62,7 +64,7 @@ bool shape_collision(
   const polydef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 );
 
 bool shape_collision(
@@ -70,7 +72,7 @@ bool shape_collision(
   const circledef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 );
 
 bool shape_collision(
@@ -78,7 +80,7 @@ bool shape_collision(
   const boxdef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 );
 
 bool shape_collision(
@@ -86,7 +88,7 @@ bool shape_collision(
   const circledef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 );
 
 // Generic not-yet-impl routine.
@@ -96,7 +98,7 @@ static bool shape_collision(
   const B&,
   body*,
   body*,
-  collision_contact&
+  vector<collision_contact>&
 );
 
 // General purpose collision handler for two polygons.
@@ -107,7 +109,7 @@ static bool poly_collision(
   const vec2def* b_verts,
   const size_t b_vert_count,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 );
 
 // Finds the minimum separation for two polygons
@@ -125,19 +127,21 @@ static bool poly_circle_collision(
   body* poly_body,
   const circledef& circle,
   body* circle_body,
-  collision_contact& contact
+  vector<collision_contact>& contact
 );
 
 /* MAIN API IMPL */
 
-bool is_colliding(body* a, body* b, collision_contact& contact) {
+bool is_colliding(body* a, body* b, vector<collision_contact>& contacts) {
   return std::visit(
     [&](const auto& s1, const auto& s2) {
-      return shape_collision(s1, s2, a, b, contact);
+      return shape_collision(s1, s2, a, b, contacts);
     },
     a->shape,
     b->shape
   );
+
+  return false;
 }
 
 void collision_solve_by_projection(collision_contact& contact) {
@@ -326,7 +330,7 @@ bool shape_collision(
   const circledef& b,
   body* a_body,
   body* b_body,
-  collision_contact& contact
+  vector<collision_contact>& contact
 ) {
   vec2def ab;
   vec2def apos;
@@ -348,12 +352,14 @@ bool shape_collision(
     return false;
   }
 
-  contact.a = a_body;
-  contact.b = b_body;
-  contact.normal = vec2_norm(ab);
-  contact.start = vec2_sub(bpos, vec2_scale(contact.normal, b.radius));
-  contact.end = vec2_add(apos, vec2_scale(contact.normal, a.radius));
-  contact.depth = vec2_magnitude(vec2_sub(contact.end, contact.start));
+  contact.resize(1);
+
+  contact[0].a = a_body;
+  contact[0].b = b_body;
+  contact[0].normal = vec2_norm(ab);
+  contact[0].start = vec2_sub(bpos, vec2_scale(contact[0].normal, b.radius));
+  contact[0].end = vec2_add(apos, vec2_scale(contact[0].normal, a.radius));
+  contact[0].depth = vec2_magnitude(vec2_sub(contact[0].end, contact[0].start));
 
   return true;
 }
@@ -363,7 +369,7 @@ bool shape_collision(
   const boxdef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 ) {
   return poly_collision(
     a.world_verts,
@@ -381,7 +387,7 @@ bool shape_collision(
   const polydef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 ) {
   return poly_collision(
     a.world_vertices.data(),
@@ -399,7 +405,7 @@ bool shape_collision(
   const polydef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 ) {
   return poly_collision(
     a.world_verts,
@@ -417,7 +423,7 @@ bool shape_collision(
   const boxdef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 ) {
   return poly_collision(
     a.world_vertices.data(),
@@ -435,7 +441,7 @@ bool shape_collision(
   const polydef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 ) {
   return poly_circle_collision(
     b.world_vertices.data(),
@@ -452,7 +458,7 @@ bool shape_collision(
   const circledef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 ) {
   return poly_circle_collision(
     a.world_vertices.data(),
@@ -469,7 +475,7 @@ bool shape_collision(
   const boxdef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 ) {
   return poly_circle_collision(
     b.world_verts,
@@ -486,7 +492,7 @@ bool shape_collision(
   const circledef& b,
   body* body_a,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 ) {
   return poly_circle_collision(
     a.world_verts,
@@ -504,7 +510,7 @@ bool shape_collision(
   const B&,
   body*,
   body*,
-  collision_contact&
+  vector<collision_contact>&
 ) {
   return false;
 }
@@ -516,7 +522,7 @@ bool poly_collision(
   const vec2def* b_verts,
   const size_t b_vert_count,
   body* body_b,
-  collision_contact& contact
+  vector<collision_contact>& contact
 ) {
   separation_info sep_ab;
   separation_info sep_ba;
@@ -538,25 +544,27 @@ bool poly_collision(
   // face to corner is always what we want.
   //
 
-  contact.a = body_a;
-  contact.b = body_b;
+  contact.resize(1);
+
+  contact[0].a = body_a;
+  contact[0].b = body_b;
 
   if (sep_ab.amount > sep_ba.amount) {
-    contact.depth = -sep_ab.amount;
-    contact.normal = vec2_perp(sep_ab.axis);
-    contact.start = sep_ab.point;
-    contact.end = vec2_add(
+    contact[0].depth = -sep_ab.amount;
+    contact[0].normal = vec2_perp(sep_ab.axis);
+    contact[0].start = sep_ab.point;
+    contact[0].end = vec2_add(
       sep_ab.point,
-      vec2_scale(contact.normal, contact.depth)
+      vec2_scale(contact[0].normal, contact[0].depth)
     );
   } else {
-    contact.depth = -sep_ba.amount;
-    contact.normal = vec2_scale(vec2_perp(sep_ba.axis), -1.0f);
-    contact.start = vec2_sub(
+    contact[0].depth = -sep_ba.amount;
+    contact[0].normal = vec2_scale(vec2_perp(sep_ba.axis), -1.0f);
+    contact[0].start = vec2_sub(
       sep_ba.point,
-      vec2_scale(contact.normal, contact.depth)
+      vec2_scale(contact[0].normal, contact[0].depth)
     );
-    contact.end = sep_ba.point;
+    contact[0].end = sep_ba.point;
   }
 
 
@@ -638,7 +646,7 @@ bool poly_circle_collision(
   body* poly_body,
   const circledef& circle,
   body* circle_body,
-  collision_contact& contact
+  vector<collision_contact>& contact
 ) {
   float best_proj;
   size_t best_v;
@@ -698,33 +706,40 @@ bool poly_circle_collision(
   //
 
   if (best_proj < 0) {
-    contact.a = poly_body;
-    contact.b = circle_body;
-    contact.depth = circle.radius - best_proj;
-    contact.normal = vec2_perp(closest_edge);
-    contact.start = vec2_sub(
+    contact.resize(1);
+
+    contact[0].a = poly_body;
+    contact[0].b = circle_body;
+    contact[0].depth = circle.radius - best_proj;
+    contact[0].normal = vec2_perp(closest_edge);
+    contact[0].start = vec2_sub(
       circle_center,
-      vec2_scale(contact.normal, circle.radius)
+      vec2_scale(contact[0].normal, circle.radius)
     );
-    contact.end = vec2_add(
-      contact.start,
-      vec2_scale(contact.normal, contact.depth)
+    contact[0].end = vec2_add(
+      contact[0].start,
+      vec2_scale(contact[0].normal, contact[0].depth)
     );
+
     return true;
   }
 
   dist = vec2_mag_squared(vec2_sub(circle_center, closest_point_on_edge));
 
   if (dist < (circle.radius * circle.radius)) {
-    contact.a = poly_body;
-    contact.b = circle_body;
-    contact.depth = circle.radius - sqrt(dist);
-    contact.normal = vec2_norm(vec2_sub(circle_center, closest_point_on_edge));
-    contact.start = vec2_sub(
+    contact.resize(1);
+
+    contact[0].a = poly_body;
+    contact[0].b = circle_body;
+    contact[0].depth = circle.radius - sqrt(dist);
+    contact[0].normal =
+      vec2_norm(vec2_sub(circle_center, closest_point_on_edge));
+    contact[0].start = vec2_sub(
       circle_center,
-      vec2_scale(contact.normal, circle.radius)
+      vec2_scale(contact[0].normal, circle.radius)
     );
-    contact.end = closest_point_on_edge;
+    contact[0].end = closest_point_on_edge;
+
     return true;
   }
 
