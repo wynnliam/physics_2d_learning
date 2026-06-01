@@ -12,6 +12,7 @@ void app_setup(application& app) {
   vec2def anchor;
   boxdef box;
   circledef circle;
+  polydef poly;
 
   app.running = graphics_open_window(app.gr);
   app.time_prev_frame = SDL_GetTicks();
@@ -220,6 +221,17 @@ void app_setup(application& app) {
     0.2f
   );
 
+  box.width = 150;
+  box.height = 150;
+  shape_init(box);
+
+  poly.local_vertices.push_back({20, 60});
+  poly.local_vertices.push_back({-40, 20});
+  poly.local_vertices.push_back({-20, -60});
+  poly.local_vertices.push_back({20, -60});
+  poly.local_vertices.push_back({40, 20});
+  shape_init(poly);
+
   body* b = new body;
   body_init(
     *b,
@@ -230,6 +242,7 @@ void app_setup(application& app) {
     0.7f,
     0.2f
   );
+  b->rotation = 0.2f;
 
   world_add_body(app.w, a);
   world_add_body(app.w, b);

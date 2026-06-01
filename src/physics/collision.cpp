@@ -7,14 +7,14 @@
 
 using namespace std;
 
-// When  computing the min separation, we return this collection of data here.
+// When computing the min separation, we return this collection of data here.
 struct separation_info {
   // The amount of separation.
   float amount;
-  // The axis or edge for which the separation was found.
-  vec2def axis;
+  // The reference edge for which the separation was found.
+  size_t ref_edge;
   // The point of the polygon that penetrated to produce the separation.
-  vec2def point;
+  vec2def support_point;
 };
 
 /* SHAPE COLLISION ROUTINES */
@@ -119,6 +119,27 @@ static void find_min_separation(
   const vec2def* b_verts,
   const size_t b_vert_count,
   separation_info& result
+);
+
+static vec2def edge_at(
+  const vec2def* verts,
+  const size_t num_verts,
+  const size_t index
+);
+
+static size_t find_incident_edge_index(
+  const vec2def* incident_shape,
+  const size_t incident_vert_count,
+  const vec2def& ref_normal
+);
+
+static size_t clip_segment_to_line(
+  const vec2def* shape,
+  const size_t vert_count,
+  const vector<vec2def>& contact_points,
+  vector<vec2def>& clipped_points,
+  const vec2def& c0,
+  const vec2def& c1
 );
 
 static bool poly_circle_collision(
@@ -524,8 +545,30 @@ bool poly_collision(
   body* body_b,
   vector<collision_contact>& contact
 ) {
+  vec2def c0;
+  vec2def c1;
+  vector<vec2def> contact_points;
+  vector<vec2def> clipped_points;
+  size_t i;
+  size_t incident_edge_index;
+  size_t incident_edge_index_next;
+  collision_contact next_contact;
+  size_t num_clipped;
+  vec2def ref_edge;
+  vec2def ref_edge_norm;
+  float separation;
   separation_info sep_ab;
   separation_info sep_ba;
+  const vec2def* shape_inc;
+  size_t shape_inc_vert_count;
+  const vec2def* shape_ref;
+  size_t shape_ref_edge_index;
+  size_t shape_ref_vert_count;
+  vec2def vclip;
+  vec2def vclip_minus_vref;
+  vec2def vi0;
+  vec2def vi1;
+  vec2def vref;
 
   find_min_separation(a_verts, a_vert_count, b_verts, b_vert_count, sep_ab);
   if (sep_ab.amount >= 0.0f) {
@@ -538,35 +581,96 @@ bool poly_collision(
   }
 
   //
-  // We have a collision, so populate the contact information. N.B. the ab and
-  // ba separations wont neccessarily be the same. Consider if the face of a
-  // hits the corner of b, or the corner of a hits the face of b. The rule is:
-  // face to corner is always what we want.
+  // Decide who is the reference shape and who is the incident shape. From here
+  // on out, we reason exclusively in terms of reference and incident shape.
   //
 
-  contact.resize(1);
-
-  contact[0].a = body_a;
-  contact[0].b = body_b;
-
   if (sep_ab.amount > sep_ba.amount) {
-    contact[0].depth = -sep_ab.amount;
-    contact[0].normal = vec2_perp(sep_ab.axis);
-    contact[0].start = sep_ab.point;
-    contact[0].end = vec2_add(
-      sep_ab.point,
-      vec2_scale(contact[0].normal, contact[0].depth)
-    );
+    shape_ref = a_verts;
+    shape_ref_vert_count = a_vert_count;
+    shape_ref_edge_index = sep_ab.ref_edge;
+
+    shape_inc = b_verts;
+    shape_inc_vert_count = b_vert_count;
   } else {
-    contact[0].depth = -sep_ba.amount;
-    contact[0].normal = vec2_scale(vec2_perp(sep_ba.axis), -1.0f);
-    contact[0].start = vec2_sub(
-      sep_ba.point,
-      vec2_scale(contact[0].normal, contact[0].depth)
-    );
-    contact[0].end = sep_ba.point;
+    shape_ref = b_verts;
+    shape_ref_vert_count = b_vert_count;
+    shape_ref_edge_index = sep_ba.ref_edge;
+
+    shape_inc = a_verts;
+    shape_inc_vert_count = a_vert_count;
   }
 
+  ref_edge = edge_at(shape_ref, shape_ref_vert_count, shape_ref_edge_index);
+  ref_edge_norm = vec2_perp(ref_edge);
+
+  //
+  // Find the incident edge
+  //
+
+  incident_edge_index = find_incident_edge_index(
+    shape_inc,
+    shape_inc_vert_count,
+    ref_edge_norm
+  );
+
+  //
+  // Peform clipping.
+  //
+
+  incident_edge_index_next = (incident_edge_index + 1) % shape_inc_vert_count;
+  vi0 = shape_inc[incident_edge_index];
+  vi1 = shape_inc[incident_edge_index_next];
+
+  contact_points = { vi0, vi1 };
+  clipped_points = { vi0, vi1 };
+
+  for (i = 0; i < shape_ref_vert_count; i++) {
+    if (i == shape_ref_edge_index) {
+      continue;
+    }
+
+    c0 = shape_ref[i];
+    c1 = shape_ref[(i + 1) % shape_ref_vert_count];
+
+    num_clipped = clip_segment_to_line(
+      shape_ref,
+      shape_ref_vert_count,
+      contact_points,
+      clipped_points,
+      c0,
+      c1
+    );
+
+    if (num_clipped < 2) {
+      break;
+    }
+
+    contact_points = clipped_points;
+  }
+
+  vref = shape_ref[shape_ref_edge_index];
+
+  for (i = 0; i < clipped_points.size(); i++) {
+    vclip = clipped_points[i];
+    vclip_minus_vref = vec2_sub(vclip, vref);
+
+    separation = vec2_dot(vclip_minus_vref, ref_edge_norm);
+    if (separation <= 0.0f) {
+      next_contact.a = body_a;
+      next_contact.b = body_b;
+      next_contact.normal = ref_edge_norm;
+      next_contact.start = vclip;
+      next_contact.end =
+        vec2_add(vclip, vec2_scale(ref_edge_norm, -separation));
+      if (sep_ba.amount >= sep_ab.amount) {
+        std::swap(next_contact.start, next_contact.end);
+        next_contact.normal = vec2_scale(next_contact.normal, -1.0f);
+      }
+      next_contact.depth = 0.0f; // TODO: ???
+      contact.push_back(next_contact);
+    }
+  }
 
   return true;
 }
@@ -634,10 +738,108 @@ void find_min_separation(
     // Now decide the most separation amongst the separations of each edge.
     if (next_separation > result.amount) {
       result.amount = next_separation;
-      result.axis = edge_a;
-      result.point = b_verts[next_point];
+      result.ref_edge = va;
+      result.support_point = b_verts[next_point];
     }
   }
+}
+
+vec2def edge_at(
+  const vec2def* verts,
+  const size_t num_verts,
+  const size_t index
+) {
+  vec2def from;
+  vec2def result;
+  vec2def to;
+
+  from = verts[index];
+  to = verts[(index + 1) % num_verts];
+
+  result = vec2_sub(to, from);
+
+  return result;
+}
+
+size_t find_incident_edge_index(
+  const vec2def* incident_shape,
+  const size_t incident_vert_count,
+  const vec2def& ref_normal
+) {
+  vec2def curr_edge;
+  vec2def curr_edge_norm;
+  float curr_proj;
+  size_t i;
+  size_t index_incident_edge;
+  float min_proj;
+
+  min_proj = std::numeric_limits<float>::max();
+  index_incident_edge = 0;
+
+  for (i = 0; i < incident_vert_count; i++) {
+    curr_edge = edge_at(incident_shape, incident_vert_count, i);
+    curr_edge_norm = vec2_perp(curr_edge);
+    curr_proj = vec2_dot(curr_edge_norm, ref_normal);
+
+    if (curr_proj < min_proj) {
+      min_proj = curr_proj;
+      index_incident_edge = i;
+    }
+  }
+
+  return index_incident_edge;
+}
+
+size_t clip_segment_to_line(
+  const vec2def* shape,
+  const size_t vert_count,
+  const vector<vec2def>& contact_points,
+  vector<vec2def>& clipped_points,
+  const vec2def& c0,
+  const vec2def& c1
+) {
+  vec2def contact;
+  float dist_0;
+  float dist_1;
+  vec2def norm;
+  size_t result;
+  float t;
+  float total_dist;
+
+  result = 0;
+
+  norm = vec2_sub(c1, c0);
+  norm = vec2_norm(norm);
+  dist_0 = vec2_cross(vec2_sub(contact_points[0], c0), norm);
+  dist_1 = vec2_cross(vec2_sub(contact_points[1], c0), norm);
+
+  if (dist_0 <= 0.0f) {
+    clipped_points[result] = contact_points[0];
+    result++;
+  }
+
+  if (dist_1 <= 0.0f) {
+    clipped_points[result] = contact_points[1];
+    result++;
+  }
+
+  if (dist_0 * dist_1 < 0.0f) {
+    total_dist = dist_0 - dist_1;
+    t = dist_0 / total_dist;
+
+    contact = vec2_add(
+      contact_points[0],
+      vec2_scale(
+        vec2_sub(contact_points[1], contact_points[0]),
+        t
+      )
+    );
+
+    clipped_points[result] = contact;
+    result++;
+  }
+
+  return result;
 }
 
 bool poly_circle_collision(
