@@ -232,20 +232,20 @@ void app_setup(application& app) {
   poly.local_vertices.push_back({40, 20});
   shape_init(poly);
 
-  body* b = new body;
-  body_init(
-    *b,
-    box,
-    300.0f,
-    0.0f,
-    0.0f,
-    0.7f,
-    0.2f
-  );
-  b->rotation = 0.2f;
+  //body* b = new body;
+  //body_init(
+  //  *b,
+  //  box,
+  //  300.0f,
+  //  0.0f,
+  //  0.0f,
+  //  0.7f,
+  //  0.2f
+  //);
+  //b->rotation = 0.0f;
 
   world_add_body(app.w, a);
-  world_add_body(app.w, b);
+  //world_add_body(app.w, b);
   
   //
   // Now add the floor and walls to contain all the components.
@@ -368,10 +368,10 @@ void app_input(application& app) {
       }
 
       case SDL_MOUSEMOTION: {
-        SDL_GetMouseState(&x, &y);
-        bod = app.w.bodies[1];
-        bod->position.x = x;
-        bod->position.y = y;
+        //SDL_GetMouseState(&x, &y);
+        //bod = app.w.bodies[1];
+        //bod->position.x = x;
+        //bod->position.y = y;
         //shape_transform(bod->shape, bod->position, bod->rotation);
         break;
       }

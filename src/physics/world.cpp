@@ -107,19 +107,19 @@ void world_update(world& w, const float delta_time) {
         num_contacts = contacts.size();
         for (k = 0; k < num_contacts; k++) {
           w.debug_contact.push_back(contacts[k]);
+
+          next_constraint = new constraint;
+          constraint_init_penetration(
+            *next_constraint,
+            contacts[k].a,
+            contacts[k].b,
+            contacts[k].start,
+            contacts[k].end,
+            contacts[k].normal
+          );
+
+          penetrations.push_back(next_constraint);
         }
-
-        /*next_constraint = new constraint;
-        constraint_init_penetration(
-          *next_constraint,
-          contact.a,
-          contact.b,
-          contact.start,
-          contact.end,
-          contact.normal
-        );
-
-        penetrations.push_back(next_constraint);*/
       }
     }
   }
@@ -130,7 +130,7 @@ void world_update(world& w, const float delta_time) {
   // Solve all constraints. Apply warm starting
   //
 
-  /*for (i = 0; i < num_constraints; i++) {
+  for (i = 0; i < num_constraints; i++) {
     constraint_presolve(*(w.constraints[i]), delta_time);
   }
 
@@ -154,7 +154,7 @@ void world_update(world& w, const float delta_time) {
 
   for (i = 0; i < num_penetrations; i++) {
     constraint_postsolve(*(penetrations[i]));
-  }*/
+  }
 
   //
   // Now update our positions using our velocities.
